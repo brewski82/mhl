@@ -1,0 +1,32 @@
+select account_id, account_deleted from account where account_id = 3;
+ account_id | account_deleted 
+------------+-----------------
+          3 | f
+(1 row)
+
+select email, email_active from account_email where account_id = 3;
+       email       | email_active 
+-------------------+--------------
+ test2@example.com | f
+ test2@example.com | t
+(2 rows)
+
+select deactivate_account(3);
+ deactivate_account 
+--------------------
+ 
+(1 row)
+
+select account_id, account_deleted from account where account_id = 3;
+ account_id | account_deleted 
+------------+-----------------
+          3 | t
+(1 row)
+
+select email, email_active from account_email where account_id = 3;
+       email       | email_active 
+-------------------+--------------
+ test2@example.com | f
+ test2@example.com | f
+(2 rows)
+

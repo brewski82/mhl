@@ -1,0 +1,13 @@
+select normalize_item(null);
+select normalize_item('');
+select normalize_item(' ');
+select normalize_item('abc');
+select normalize_item(' abc ');
+select normalize_item('four cups');
+select normalize_item('half cup');
+select normalize_item('2 eggs');
+select normalize_item('$#@''3234kdvkn');
+select normalize_item('frozen chicken');
+select normalize_item('chopped veggies');
+select normalize_item('diced tomatoes');
+select normalize_item('1/2 cups margerine');

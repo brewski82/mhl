@@ -1,0 +1,121 @@
+\set VERBOSITY terse
+-- Next statements should error due to invalid args.
+select update_recipe
+(
+  null
+  , null
+  , null
+  , null
+  , null
+)
+;
+ERROR:  Recipe <NULL> for account <NULL> not found!
+select update_recipe
+(
+  (select max(account_id) from account)
+  , null
+  , null
+  , null
+  , null
+)
+;
+ERROR:  Recipe <NULL> for account 8 not found!
+select update_recipe
+(
+  null
+  , (select max(recipe_id) from recipe)
+  , null
+  , null
+  , null
+)
+;
+ERROR:  Recipe 4 for account <NULL> not found!
+select update_recipe
+(
+  (select min(account_id) from account)
+  , (select max(recipe_id) from recipe)
+  , null
+  , null
+  , null
+)
+;
+ERROR:  Recipe 4 for account 1 not found!
+select update_recipe
+(
+  (select max(account_id) from account)
+  , (select max(recipe_id) from recipe)
+  , null
+  , null
+  , null
+)
+;
+ERROR:  null value in column "recipe_name" violates not-null constraint
+select update_recipe
+(
+  (select max(account_id) from account)
+  , (select max(recipe_id) from recipe)
+  , ''
+  , null
+  , null
+)
+;
+ERROR:  new row for relation "recipe" violates check constraint "recipe_recipe_name_check"
+select update_recipe
+(
+  (select max(account_id) from account)
+  , (select max(recipe_id) from recipe)
+  , ' '
+  , null
+  , null
+)
+;
+ERROR:  new row for relation "recipe" violates check constraint "recipe_recipe_name_check"
+-- These statements should work.
+select update_recipe
+(
+  (select max(account_id) from account)
+  , (select max(recipe_id) from recipe)
+  , 'Updated name'
+  , null
+  , null
+)
+;
+ update_recipe 
+---------------
+ 
+(1 row)
+
+select recipe_name, recipe_description, recipe_source
+from recipe
+where
+  recipe_id = (select max(recipe_id) from recipe)
+;
+ recipe_name  | recipe_description | recipe_source 
+--------------+--------------------+---------------
+ Updated name |                    | 
+(1 row)
+
+select update_recipe
+(
+  (select max(account_id) from account)
+  , (select max(recipe_id) from recipe)
+  , 'Updated name'
+  , 'Descr'
+  , 'Source'
+)
+;
+ update_recipe 
+---------------
+ 
+(1 row)
+
+select recipe_name, recipe_description, recipe_source
+from recipe
+where
+  recipe_id = (select max(recipe_id) from recipe)
+;
+ recipe_name  | recipe_description | recipe_source 
+--------------+--------------------+---------------
+ Updated name | Descr              | Source
+(1 row)
+

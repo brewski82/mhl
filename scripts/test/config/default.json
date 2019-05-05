@@ -1,0 +1,16 @@
+{
+    "sessionSecret": "secret",
+    "dbHost": "db",
+    "dbName": "mhl",
+    "dbPort": 5432,
+    "dbUser": "postgres",
+    "dbPassword": null,
+    "serverPort": "8888",
+    "emailHost": "",
+    "emailPort": 0,
+    "emailUser": "",
+    "emailPassword": "",
+    "emailFrom": "test@example.com",
+    "emailLoginLink": "http://localhost/api/login/",
+    "emailVerifyLink": "http://localhost/api/account/emails/"
+}

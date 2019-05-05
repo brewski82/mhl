@@ -1,0 +1,107 @@
+select create_account('test@example.com');
+ create_account 
+----------------
+              1
+(1 row)
+
+-- This should raise an error as two active accounts cannot share the
+-- same email.
+select create_account('test@example.com');
+ERROR:  conflicting key value violates exclusion constraint "account_email_email_excl"
+DETAIL:  Key (email)=(test@example.com) conflicts with existing key (email)=(test@example.com).
+select create_account('test2@example.com');
+ create_account 
+----------------
+              3
+(1 row)
+
+-- Should raise an error due to bad account id.
+select create_account_email(999, 'test3@example.com', true);
+ERROR:  insert or update on table "account_email" violates foreign key constraint "account_email_account_id_fkey"
+DETAIL:  Key (account_id)=(999) is not present in table "account".
+-- Should raise an error due to duplicate email.
+select create_account_email
+(
+  (select min(account_id) from account)
+  , 'test2@example.com'
+  , true
+);
+ERROR:  conflicting key value violates exclusion constraint "account_email_email_excl"
+DETAIL:  Key (email)=(test2@example.com) conflicts with existing key (email)=(test2@example.com).
+select create_account_email
+(
+  (select min(account_id) from account)
+  , 'test@example.com'
+  , true
+);
+ERROR:  conflicting key value violates exclusion constraint "account_email_email_excl"
+DETAIL:  Key (email)=(test@example.com) conflicts with existing key (email)=(test@example.com).
+-- If we deactivate the email we should be able to add it to the other
+-- account.
+select deactivate_email
+(
+  (select max(account_id) from account)
+  , 'test2@example.com'
+);
+ deactivate_email 
+------------------
+ 
+(1 row)
+
+with x as (
+  select create_account_email
+  (
+    (select min(account_id) from account)
+    , 'test2@example.com'
+    , true
+  )
+)
+select 'yes' as result from x;
+ result 
+--------
+ yes
+(1 row)
+
+-- Deactive the email again on the first account. We should be able to
+-- add it back to the second account. The second account should have
+-- two records with the same email, which is okay.
+select deactivate_email
+(
+  (select min(account_id) from account)
+  , 'test2@example.com'
+);
+ deactivate_email 
+------------------
+ 
+(1 row)
+
+with x as (
+  select create_account_email
+  (
+    (select max(account_id) from account)
+    , 'test2@example.com'
+    , true
+  )
+)
+select 'yes' as result from x;;
+ result 
+--------
+ yes
+(1 row)
+
+select account_id from account order by account;
+ account_id 
+------------
+          1
+          3
+(2 rows)
+
+select account_id, email, email_active from account_email order by account_id, email, email_active;
+ account_id |       email       | email_active 
+------------+-------------------+--------------
+          1 | test2@example.com | f
+          1 | test@example.com  | t
+          3 | test2@example.com | f
+          3 | test2@example.com | t
+(4 rows)
+

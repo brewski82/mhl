@@ -1,0 +1,74 @@
+\set VERBOSITY terse
+-- Test creating multiple shopping lists.
+select create_shopping_list(1, 'one');
+ create_shopping_list 
+----------------------
+                    1
+(1 row)
+
+select create_shopping_list(1, 'two');
+ create_shopping_list 
+----------------------
+                    2
+(1 row)
+
+-- Name should be required.
+select create_shopping_list(1, '');
+ERROR:  new row for relation "shopping_list" violates check constraint "shopping_list_shopping_list_name_check"
+select create_shopping_list(1, null);
+ERROR:  null value in column "shopping_list_name" violates not-null constraint
+-- Test with items
+select create_shopping_list(1, 'three'
+                               , '[{"item": "butter", "categoryId": 1 }, {"item": "lettuce", "categoryId": 2 }, {"item": "fish", "categoryId": 3 }]'::jsonb);
+ create_shopping_list 
+----------------------
+                    5
+(1 row)
+
+-- Reject if we have a bad category.
+select create_shopping_list(1, 'four'
+                               , '[{"item": "butter", "categoryId": 1}, {"item": "lettuce", "categoryId": 2}, {"item": "fish", "categoryId": "Bad Cat"}]'::jsonb);
+ERROR:  invalid input syntax for integer: "Bad Cat"
+-- Reject if we have a bad category.
+select create_shopping_list(1, 'four'
+                               , '[{"item": "butter", "categoryId": 1}, {"item": "lettuce", "categoryId": 2}, {"item": "fish", "categoryId": ""}]'::jsonb);
+ERROR:  invalid input syntax for integer: ""
+-- Reject if we have a bad category.
+select create_shopping_list(1, 'four'
+                               , '[{"item": "butter", "categoryId": 1}, {"item": "lettuce", "categoryId": 2}, {"item": "fish", "categoryId": null}]'::jsonb);
+ERROR:  null value in column "category_id" violates not-null constraint
+-- Reject if we have a bad category.
+select create_shopping_list(1, 'four'
+                               , '[{"item": "butter", "categoryId": 1}, {"item": "lettuce", "categoryId": 2}, {"item": "fish", "categoryId": " "}]'::jsonb);
+ERROR:  invalid input syntax for integer: " "
+-- Reject if we have a bad category.
+select create_shopping_list(1, 'four'
+                               , '[{"item": "butter", "categoryId": 1}, {"item": "lettuce", "categoryId": 2}, {"item": "fish", "categoryId": 10000000}]'::jsonb);
+ERROR:  insert or update on table "shopping_list_item" violates foreign key constraint "shopping_list_item_category_id_fkey"
+-- Reject if we have a bad item.
+select create_shopping_list(1, 'four'
+                               , '[{"item": "", "categoryId": 1}, {"item": "lettuce", "categoryId": 2}, {"item": "fish", "categoryId": "Bad Cat"}]'::jsonb);
+ERROR:  new row for relation "shopping_list_item" violates check constraint "shopping_list_item_shopping_list_item_value_check"
+-- Reject if we have a bad item.
+select create_shopping_list(1, 'four'
+                               , '[{"item": "  ", "categoryId": 1}, {"item": "lettuce", "categoryId": 2}, {"item": "fish", "categoryId": "Bad Cat"}]'::jsonb);
+ERROR:  new row for relation "shopping_list_item" violates check constraint "shopping_list_item_shopping_list_item_value_check"
+-- Reject if we have a bad item.
+select create_shopping_list(1, 'four'
+                               , '[{"item": null, "categoryId": 1}, {"item": "lettuce", "categoryId": 2}, {"item": "fish", "categoryId": "Bad Cat"}]'::jsonb);
+ERROR:  null value in column "shopping_list_item_value" violates not-null constraint
+-- Allow lists with the same name.
+select create_shopping_list(1, 'two');
+ create_shopping_list 
+----------------------
+                   14
+(1 row)
+
+select shopping_list_id, category_id, shopping_list_item_value from shopping_list_item order by shopping_list_id, category_id, shopping_list_item_value;
+ shopping_list_id | category_id | shopping_list_item_value 
+------------------+-------------+--------------------------
+                5 |           1 | butter
+                5 |           2 | lettuce
+                5 |           3 | fish
+(3 rows)
+

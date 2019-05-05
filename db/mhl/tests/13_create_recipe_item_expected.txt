@@ -1,0 +1,30 @@
+\set VERBOSITY terse
+-- Bad account / recipe id / items.
+select create_recipe_item(null, null, null);
+ERROR:  Recipe <NULL> for account <NULL> not found!
+select create_recipe_item(1, null, null);
+ERROR:  Recipe <NULL> for account 1 not found!
+select create_recipe_item(null, 3, null);
+ERROR:  Recipe 3 for account <NULL> not found!
+select create_recipe_item(1, 3, null);
+ERROR:  null value in column "recipe_item_value" violates not-null constraint
+select create_recipe_item(1, 3, '');
+ERROR:  new row for relation "recipe_item" violates check constraint "recipe_item_recipe_item_value_check"
+select create_recipe_item(1, 3, ' ');
+ERROR:  new row for relation "recipe_item" violates check constraint "recipe_item_recipe_item_value_check"
+select create_recipe_item(1, 3000, 'sugar');
+ERROR:  Recipe 3000 for account 1 not found!
+select create_recipe_item(1000, 3, 'sugar');
+ERROR:  Recipe 3 for account 1000 not found!
+select create_recipe_item(1, 3, 'sugar');
+ create_recipe_item 
+--------------------
+                  4
+(1 row)
+
+select recipe_id, recipe_item_value from recipe_item;
+ recipe_id | recipe_item_value 
+-----------+-------------------
+         3 | sugar
+(1 row)
+

@@ -1,0 +1,190 @@
+-- Login attempts should generate a random uuid. Since this may cause
+-- problems when comparing test results to baseline files, save the
+-- output into temp tables so it does not print to the screen.
+create temp table login_tests (
+  id int not null
+  , email text not null
+  , uuid uuid not null
+);
+CREATE TABLE
+-- Add a login record for an existing account.
+insert into login_tests
+select
+  1
+  , 'test@example.com'
+  , create_login('test@example.com')
+;
+INSERT 0 1
+-- Add a login record for a new account.
+insert into login_tests
+select
+  2
+  , 'new@example.com'
+  , create_login('new@example.com')
+;
+INSERT 0 1
+-- Add a login record and 'expire' the record.
+insert into login_tests
+select
+  3
+  , 'expire@example.com'
+  , create_login('expire@example.com')
+;
+INSERT 0 1
+update login set login_exipred = login_exipred - interval '2 hours'
+where email = 'expire@example.com';
+UPDATE 1
+-- Adding more than one login with the same email active at the same
+-- time is allowed.
+insert into login_tests
+select
+  4
+  , '2@example.com'
+  , create_login('2@example.com')
+;
+INSERT 0 1
+insert into login_tests
+select
+  5
+  , '2@example.com'
+  , create_login('2@example.com')
+;
+INSERT 0 1
+-- Test creating an account when the previous account has been
+-- deactivated. If a user previously deactivated all emails associated
+-- with their account, consider the account permenantly deleted with
+-- no way to recover. If the user returns with the same email, they
+-- will have a brand new account.
+select create_account('deactivated@example.com');
+ create_account 
+----------------
+              4
+(1 row)
+
+select deactivate_email
+(
+  (select max(account_id) from account)
+  , 'deactivated@example.com'
+);
+ deactivate_email 
+------------------
+ 
+(1 row)
+
+insert into login_tests
+select
+  6
+  , 'deactivated@example.com'
+  , create_login('deactivated@example.com')
+;
+INSERT 0 1
+-- First test should not create a new account.
+select count(*) from account;
+ count 
+-------
+     3
+(1 row)
+
+select get_or_create_account_from_login(
+  (select uuid from login_tests where id = 1)
+);
+ get_or_create_account_from_login 
+----------------------------------
+                                1
+(1 row)
+
+select count(*) from account;
+ count 
+-------
+     3
+(1 row)
+
+-- Second test should create an account.
+select get_or_create_account_from_login(
+  (select uuid from login_tests where id = 2)
+);
+ get_or_create_account_from_login 
+----------------------------------
+                                5
+(1 row)
+
+select count(*) from account;
+ count 
+-------
+     4
+(1 row)
+
+-- Third test should not create an account as the login record
+-- expired.
+select get_or_create_account_from_login(
+  (select uuid from login_tests where id = 3)
+);
+ get_or_create_account_from_login 
+----------------------------------
+                                0
+(1 row)
+
+select count(*) from account;
+ count 
+-------
+     4
+(1 row)
+
+-- These next two should only create one account as the login records
+-- have the same email.
+select get_or_create_account_from_login(
+  (select uuid from login_tests where id = 4)
+);
+ get_or_create_account_from_login 
+----------------------------------
+                                6
+(1 row)
+
+select count(*) from account;
+ count 
+-------
+     5
+(1 row)
+
+select get_or_create_account_from_login(
+  (select uuid from login_tests where id = 5)
+);
+ get_or_create_account_from_login 
+----------------------------------
+                                6
+(1 row)
+
+select count(*) from account;
+ count 
+-------
+     5
+(1 row)
+
+-- The last test should create a new account.
+select get_or_create_account_from_login(
+  (select uuid from login_tests where id = 6)
+);
+ get_or_create_account_from_login 
+----------------------------------
+                                7
+(1 row)
+
+select count(*) from account;
+ count 
+-------
+     6
+(1 row)
+
+select account_id, email, email_active from account_email order by account_id, email, email_active;
+ account_id |          email          | email_active 
+------------+-------------------------+--------------
+          1 | test2@example.com       | f
+          1 | test@example.com        | t
+          3 | test2@example.com       | f
+          3 | test2@example.com       | t
+          4 | deactivated@example.com | f
+          5 | new@example.com         | t
+          6 | 2@example.com           | t
+          7 | deactivated@example.com | t
+(8 rows)
+

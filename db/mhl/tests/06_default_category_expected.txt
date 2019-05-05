@@ -1,0 +1,6 @@
+select get_default_category();
+ get_default_category 
+----------------------
+ Other
+(1 row)
+

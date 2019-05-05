@@ -1,0 +1,43 @@
+public/tables:
+  - account
+  - account_email
+  - category
+  - login
+  - shopping_list
+  - shopping_list_item
+  - recipe
+  - recipe_item
+  - shopping_list_recipe
+  - item_category
+  - account_item_category
+
+public/functions:
+  - create_account_email
+  - create_account
+  - deactivate_email
+  - deactivate_email_safe
+  - create_login
+  - get_or_create_account_from_login
+  - normalize_item
+  - get_category
+  - get_default_category
+  - create_shopping_list
+  - calculate_category
+  - create_shopping_list_item
+  - tally_category
+  - update_shopping_list_item
+  - create_recipe
+  - deactivate_account
+  - create_recipe_item
+  - delete_recipe_item
+  - delete_recipe
+  - add_recipe_to_shopping_list
+  - update_recipe
+  - update_recipe_item
+  - update_shopping_list_name
+  - add_items_to_current_shopping_list
+  - verify_email
+
+public/views: shopping_list_recipe_view
+
+data: categories

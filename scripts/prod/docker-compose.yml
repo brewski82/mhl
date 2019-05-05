@@ -1,0 +1,31 @@
+version: '3'
+services:
+  web:
+    image: ${MHL_WEB_TAG}
+    volumes:
+      - ${MHL_WEB_CONFIG}/nginx:/etc/nginx/conf.d
+      - ${MHL_WEB_CONFIG}/certbot/conf:/etc/letsencrypt
+      - ${MHL_WEB_CONFIG}/certbot/www:/var/www/certbot
+    ports:
+     - '80:80'
+     - '443:443'
+    command: "/bin/sh -c 'while :; do sleep 6h & wait $${!}; nginx -s reload; done & nginx -g \"daemon off;\"'"
+  certbot:
+    image: certbot/certbot
+    restart: unless-stopped
+    volumes:
+      - ${MHL_WEB_CONFIG}/certbot/conf:/etc/letsencrypt
+      - ${MHL_WEB_CONFIG}/certbot/www:/var/www/certbot
+    entrypoint: "/bin/sh -c 'trap exit TERM; while :; do certbot renew; sleep 12h & wait $${!}; done;'"
+  api:
+    image: ${MHL_API_TAG}
+    volumes:
+      - ${MHL_API_CONFIG}:/usr/src/app/config/default.json
+    command: npm start
+    working_dir: /usr/src/app
+  db:
+    image: ${MHL_DB_TAG}
+    volumes:
+      - ${MHL_DB_VOL}:/var/lib/postgresql/data
+    ports:
+      - ${MHL_DB_PORT}:5432

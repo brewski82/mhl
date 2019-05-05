@@ -1,0 +1,78 @@
+select normalize_item(null);
+ normalize_item 
+----------------
+ 
+(1 row)
+
+select normalize_item('');
+ normalize_item 
+----------------
+ 
+(1 row)
+
+select normalize_item(' ');
+ normalize_item 
+----------------
+ 
+(1 row)
+
+select normalize_item('abc');
+ normalize_item 
+----------------
+ abc
+(1 row)
+
+select normalize_item(' abc ');
+ normalize_item 
+----------------
+ abc
+(1 row)
+
+select normalize_item('four cups');
+ normalize_item 
+----------------
+ cups
+(1 row)
+
+select normalize_item('half cup');
+ normalize_item 
+----------------
+ half
+(1 row)
+
+select normalize_item('2 eggs');
+ normalize_item 
+----------------
+ eggs
+(1 row)
+
+select normalize_item('$#@''3234kdvkn');
+ normalize_item 
+----------------
+ kdvkn
+(1 row)
+
+select normalize_item('frozen chicken');
+ normalize_item 
+----------------
+ frozenchicken
+(1 row)
+
+select normalize_item('chopped veggies');
+ normalize_item 
+----------------
+ choppedveggies
+(1 row)
+
+select normalize_item('diced tomatoes');
+ normalize_item 
+----------------
+ dicedtomatoes
+(1 row)
+
+select normalize_item('1/2 cups margerine');
+ normalize_item 
+----------------
+ margerine
+(1 row)
+

@@ -1,0 +1,175 @@
+\set VERBOSITY terse
+select create_account('recipetest@example.com');
+ create_account 
+----------------
+              8
+(1 row)
+
+select create_recipe
+(
+  (select max(account_id) from account)
+);
+ create_recipe 
+---------------
+             4
+(1 row)
+
+select create_recipe_item
+(
+  (select max(account_id) from account)
+  , (select max(recipe_id) from recipe)
+  , 'salsa'
+);
+ create_recipe_item 
+--------------------
+                  5
+(1 row)
+
+select create_recipe_item
+(
+  (select max(account_id) from account)
+  , (select max(recipe_id) from recipe)
+  , 'flour'
+);
+ create_recipe_item 
+--------------------
+                  6
+(1 row)
+
+select create_recipe_item
+(
+  (select max(account_id) from account)
+  , (select max(recipe_id) from recipe)
+  , 'cheese'
+);
+ create_recipe_item 
+--------------------
+                  7
+(1 row)
+
+select create_shopping_list
+(
+  (select max(account_id) from account)
+  , 'New List'
+);
+ create_shopping_list 
+----------------------
+                   15
+(1 row)
+
+select add_recipe_to_shopping_list
+(
+  null
+  , null
+  , null
+);
+ERROR:  Shopping list <NULL> for account <NULL> not found!
+select add_recipe_to_shopping_list
+(
+  (select max(account_id) from account)
+  , null
+  , null
+);
+ERROR:  Shopping list <NULL> for account 8 not found!
+select add_recipe_to_shopping_list
+(
+  (select min(account_id) from account)
+  , (select max(shopping_list_id) from shopping_list)
+  , null
+);
+ERROR:  Shopping list 15 for account 1 not found!
+select add_recipe_to_shopping_list
+(
+  (select max(account_id) from account)
+  , (select min(shopping_list_id) from shopping_list)
+  , null
+);
+ERROR:  Shopping list 1 for account 8 not found!
+select add_recipe_to_shopping_list
+(
+  (select max(account_id) from account)
+  , (select max(shopping_list_id) from shopping_list)
+  , (select max(recipe_id) from recipe)
+);
+ add_recipe_to_shopping_list 
+-----------------------------
+ 
+(1 row)
+
+select count(*) from shopping_list_recipe;
+ count 
+-------
+     1
+(1 row)
+
+select add_recipe_to_shopping_list
+(
+  (select max(account_id) from account)
+  , (select max(shopping_list_id) from shopping_list)
+  , (select max(recipe_id) from recipe)
+);
+ add_recipe_to_shopping_list 
+-----------------------------
+ 
+(1 row)
+
+select count(*) from shopping_list_recipe;
+ count 
+-------
+     1
+(1 row)
+
+select
+  shopping_list_item_value
+from shopping_list_item
+where shopping_list_id = (select max(shopping_list_id) from shopping_list)
+order by shopping_list_item_value;
+ shopping_list_item_value 
+--------------------------
+ cheese
+ cheese
+ flour
+ flour
+ salsa
+ salsa
+(6 rows)
+
+select create_shopping_list
+(
+  (select min(account_id) from account)
+  , 'New List for orginal account'
+);
+ create_shopping_list 
+----------------------
+                   16
+(1 row)
+
+select add_recipe_to_shopping_list
+(
+  (select min(account_id) from account)
+  , (select max(shopping_list_id) from shopping_list)
+  , (select max(recipe_id) from recipe)
+);
+ add_recipe_to_shopping_list 
+-----------------------------
+ 
+(1 row)
+
+select
+  shopping_list_item_value
+from shopping_list_item
+where shopping_list_id = (select max(shopping_list_id) from shopping_list)
+order by shopping_list_item_value;
+ shopping_list_item_value 
+--------------------------
+ cheese
+ flour
+ salsa
+(3 rows)
+
+select count(*) from shopping_list_recipe;
+ count 
+-------
+     2
+(1 row)
+

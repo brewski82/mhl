@@ -1,0 +1,92 @@
+\set VERBOSITY terse
+-- Create a new shopping list to test with.
+select create_shopping_list
+(
+  (select max(account_id) from account)
+  , 'Name 1'
+);
+ create_shopping_list 
+----------------------
+                   17
+(1 row)
+
+select count(*) from shopping_list where shopping_list_name = 'Name 1';
+ count 
+-------
+     1
+(1 row)
+
+-- These should error.
+select update_shopping_list_name
+(
+  null
+  , (select min(shopping_list_id) from shopping_list)
+  , 'Name 2'
+);
+ERROR:  Shopping list 1 for account <NULL> not found!
+select update_shopping_list_name
+(
+  (select max(account_id) from account)
+  , null
+  , 'Name 2'
+);
+ERROR:  Shopping list <NULL> for account 8 not found!
+select update_shopping_list_name
+(
+  (select max(account_id) from account)
+  , (select min(shopping_list_id) from shopping_list)
+  , 'Name 2'
+);
+ERROR:  Shopping list 1 for account 8 not found!
+select update_shopping_list_name
+(
+  (select min(account_id) from account)
+  , (select max(shopping_list_id) from shopping_list)
+  , 'Name 2'
+);
+ERROR:  Shopping list 17 for account 1 not found!
+select update_shopping_list_name
+(
+  (select max(account_id) from account)
+  , (select max(shopping_list_id) from shopping_list)
+  , null
+);
+ERROR:  null value in column "shopping_list_name" violates not-null constraint
+select update_shopping_list_name
+(
+  (select max(account_id) from account)
+  , (select max(shopping_list_id) from shopping_list)
+  , ''
+);
+ERROR:  new row for relation "shopping_list" violates check constraint "shopping_list_shopping_list_name_check"
+select update_shopping_list_name
+(
+  (select max(account_id) from account)
+  , (select max(shopping_list_id) from shopping_list)
+  , ' '
+);
+ERROR:  new row for relation "shopping_list" violates check constraint "shopping_list_shopping_list_name_check"
+-- Do the proper update.
+select update_shopping_list_name
+(
+  (select max(account_id) from account)
+  , (select max(shopping_list_id) from shopping_list)
+  , 'Name 2'
+);
+ update_shopping_list_name 
+---------------------------
+ 
+(1 row)
+
+select count(*) from shopping_list where shopping_list_name = 'Name 1';
+ count 
+-------
+     0
+(1 row)
+
+select count(*) from shopping_list where shopping_list_name = 'Name 2';
+ count 
+-------
+     1
+(1 row)
+

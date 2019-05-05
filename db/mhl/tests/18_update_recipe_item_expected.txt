@@ -1,0 +1,128 @@
+\set VERBOSITY terse
+select create_recipe((select max(account_id) from account));
+ create_recipe 
+---------------
+             5
+(1 row)
+
+select create_recipe_item
+(
+  (select max(account_id) from account)
+  , (select max(recipe_id) from recipe)
+  , 'Cheese'
+);
+ create_recipe_item 
+--------------------
+                  8
+(1 row)
+
+-- These should fail.
+select update_recipe_item
+(
+  null
+  , null
+  , null
+  , null
+);
+ERROR:  Recipe <NULL> for account <NULL> not found!
+select update_recipe_item
+(
+  1000
+  , null
+  , null
+  , null
+);
+ERROR:  Recipe <NULL> for account 1000 not found!
+select update_recipe_item
+(
+  null
+  , 1000
+  , null
+  , null
+);
+ERROR:  Recipe 1000 for account <NULL> not found!
+select update_recipe_item
+(
+  (select min(account_id) from account)
+  , (select max(recipe_id) from recipe)
+  , null
+  , null
+);
+ERROR:  Recipe 5 for account 1 not found!
+select update_recipe_item
+(
+  (select max(account_id) from account)
+  , (select min(recipe_id) from recipe)
+  , null
+  , null
+);
+ERROR:  Recipe item <NULL> for recipe 4 not found!
+select update_recipe_item
+(
+  (select max(account_id) from account)
+  , (select max(recipe_id) from recipe)
+  , 1000
+  , null
+);
+ERROR:  Recipe item 1000 for recipe 5 not found!
+select update_recipe_item
+(
+  (select max(account_id) from account)
+  , (select max(recipe_id) from recipe)
+  , (select max(recipe_item_id) from recipe_item)
+  , null
+);
+ERROR:  null value in column "recipe_item_value" violates not-null constraint
+select update_recipe_item
+(
+  (select max(account_id) from account)
+  , (select max(recipe_id) from recipe)
+  , (select max(recipe_item_id) from recipe_item)
+  , ''
+);
+ERROR:  new row for relation "recipe_item" violates check constraint "recipe_item_recipe_item_value_check"
+select update_recipe_item
+(
+  (select max(account_id) from account)
+  , (select max(recipe_id) from recipe)
+  , (select max(recipe_item_id) from recipe_item)
+  , ' '
+);
+ERROR:  new row for relation "recipe_item" violates check constraint "recipe_item_recipe_item_value_check"
+-- These should succeed.
+select count(*) from recipe_item where recipe_item_value = 'Cheese';
+ count 
+-------
+     1
+(1 row)
+
+select count(*) from recipe_item where recipe_item_value = 'String Cheese';
+ count 
+-------
+     0
+(1 row)
+
+select update_recipe_item
+(
+  (select max(account_id) from account)
+  , (select max(recipe_id) from recipe)
+  , (select max(recipe_item_id) from recipe_item)
+  , 'String Cheese'
+);
+ update_recipe_item 
+--------------------
+ 
+(1 row)
+
+select count(*) from recipe_item where recipe_item_value = 'Cheese';
+ count 
+-------
+     0
+(1 row)
+
+select count(*) from recipe_item where recipe_item_value = 'String Cheese';
+ count 
+-------
+     1
+(1 row)
+

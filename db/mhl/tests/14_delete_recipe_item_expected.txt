@@ -1,0 +1,35 @@
+\set VERBOSITY terse
+select delete_recipe_item(null, null, null);
+ERROR:  Recipe <NULL> for account <NULL> not found!
+select delete_recipe_item(null, null, 4);
+ERROR:  Recipe <NULL> for account <NULL> not found!
+select delete_recipe_item(1, null, null);
+ERROR:  Recipe <NULL> for account 1 not found!
+select delete_recipe_item(null, 3, null);
+ERROR:  Recipe 3 for account <NULL> not found!
+select delete_recipe_item(null, 3, 4);
+ERROR:  Recipe 3 for account <NULL> not found!
+select delete_recipe_item(1, null, 4);
+ERROR:  Recipe <NULL> for account 1 not found!
+select delete_recipe_item(1, 3, null);
+ERROR:  Recipe item <NULL> for recipe 3 not found!
+select delete_recipe_item(10000, 3, 4);
+ERROR:  Recipe 3 for account 10000 not found!
+select delete_recipe_item(1, 30000, 4);
+ERROR:  Recipe 30000 for account 1 not found!
+select delete_recipe_item(1, 3, 100000);
+ERROR:  Recipe item 100000 for recipe 3 not found!
+select delete_recipe_item(10000, 30000, 4);
+ERROR:  Recipe 30000 for account 10000 not found!
+select delete_recipe_item(1, 300000, 40000);
+ERROR:  Recipe 300000 for account 1 not found!
+select delete_recipe_item(1000, 3, 40000);
+ERROR:  Recipe 3 for account 1000 not found!
+select delete_recipe_item(1, 3, 4);
+ delete_recipe_item 
+--------------------
+ 
+(1 row)
+
+select delete_recipe_item(1, 3, 4);
+ERROR:  Recipe item 4 for recipe 3 not found!

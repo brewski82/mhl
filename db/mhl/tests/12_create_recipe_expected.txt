@@ -1,0 +1,13 @@
+\set VERBOSITY terse
+-- Bad account ids
+select create_recipe(null);
+ERROR:  null value in column "account_id" violates not-null constraint
+select create_recipe(0);
+ERROR:  insert or update on table "recipe" violates foreign key constraint "recipe_account_id_fkey"
+-- Should succeed.
+select create_recipe(1);
+ create_recipe 
+---------------
+             3
+(1 row)
+

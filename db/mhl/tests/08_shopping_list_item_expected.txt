@@ -1,0 +1,29 @@
+select shopping_list_id, account_id from shopping_list order by shopping_list_id, account_id;
+ shopping_list_id | account_id 
+------------------+------------
+                1 |          1
+                2 |          1
+                5 |          1
+               14 |          1
+(4 rows)
+
+-- Should error.
+select create_shopping_list_item(0, 0, '');
+ERROR:  Shopping list 0 for account 0 not found!
+select create_shopping_list_item(0, 0, '');
+ERROR:  Shopping list 0 for account 0 not found!
+select create_shopping_list_item(1, 3, '');
+ERROR:  Shopping list 3 for account 1 not found!
+-- Should succeed
+select 'test' from create_shopping_list_item(1, 1, 'Chips and Salsa') x;
+ ?column? 
+----------
+ test
+(1 row)
+
+select distinct shopping_list_id, shopping_list_item_value from shopping_list_item where shopping_list_item_value = 'Chips and Salsa';
+ shopping_list_id | shopping_list_item_value 
+------------------+--------------------------
+                1 | Chips and Salsa
+(1 row)
+

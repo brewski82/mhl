@@ -1,0 +1,16 @@
+{
+  "name": "mhl-int-tests",
+  "version": "1.0.0",
+  "description": "Integration tests for My Honey's List",
+  "main": "index.js",
+  "scripts": {
+    "test": "jest --runInBand"
+  },
+  "author": "William Bruschi",
+  "license": "AGPL-3.0-or-later",
+  "dependencies": {
+    "jest": "^24.7.1",
+    "pg": "^7.10.0",
+    "superagent": "^5.0.3"
+  }
+}

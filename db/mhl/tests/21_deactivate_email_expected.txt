@@ -1,0 +1,36 @@
+\set VERBOSITY terse
+-- Should fail.
+select deactivate_email_safe(
+  (select distinct account_id from account_email where email = 'new@example.com')
+  , 'new@example.com'
+);
+ERROR:  You must have at least one active email.
+-- Create a new email so we can deactive it.
+with x as (
+  select create_account_email(
+    (select distinct account_id from account_email where email = 'recipetest@example.com')
+    , 'newemailtodeactivate@example.com'
+    , true
+  )
+) select 'yes' as result from x;
+ result 
+--------
+ yes
+(1 row)
+
+-- Should succeed.
+select deactivate_email_safe(
+  (select distinct account_id from account_email where email = 'newemailtodeactivate@example.com')
+  , 'newemailtodeactivate@example.com'
+);
+ deactivate_email_safe 
+-----------------------
+ 
+(1 row)
+
+select email, email_active from account_email where email = 'newemailtodeactivate@example.com';
+              email               | email_active 
+----------------------------------+--------------
+ newemailtodeactivate@example.com | f
+(1 row)
+

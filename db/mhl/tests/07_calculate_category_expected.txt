@@ -1,0 +1,54 @@
+select category_name from category where category_id = calculate_category(null, null);
+ category_name 
+---------------
+ Other
+(1 row)
+
+select category_name from category where category_id = calculate_category(1, null);
+ category_name 
+---------------
+ Other
+(1 row)
+
+select category_name from category where category_id = calculate_category(1, 'Dog food');
+ category_name 
+---------------
+ Other
+(1 row)
+
+select category_name from category where category_id = calculate_category(1, 'non existent item');
+ category_name 
+---------------
+ Other
+(1 row)
+
+select category_name from category where category_id = calculate_category(1, 'Horseradish');
+ category_name 
+---------------
+ Produce
+(1 row)
+
+insert into account_item_category (account_id, category_id, account_item_category_value) values
+(1, (get_category('Pets')).category_id, normalize_item('Dog food'))
+, (1, (get_category('Seafood')).category_id, normalize_item('non existent item'))
+, (1, (get_category('Condiments')).category_id, normalize_item('Horseradish'))
+;
+INSERT 0 3
+select category_name from category where category_id = calculate_category(1, 'Dog food');
+ category_name 
+---------------
+ Pets
+(1 row)
+
+select category_name from category where category_id = calculate_category(1, 'non existent item');
+ category_name 
+---------------
+ Seafood
+(1 row)
+
+select category_name from category where category_id = calculate_category(1, 'Horseradish');
+ category_name 
+---------------
+ Condiments
+(1 row)
+

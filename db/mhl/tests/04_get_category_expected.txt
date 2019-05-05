@@ -1,0 +1,64 @@
+select get_category('Frozen Foods');
+      get_category      
+------------------------
+ (12,"Frozen Foods",12)
+(1 row)
+
+select get_category('Deli');
+ get_category 
+--------------
+ (11,Deli,11)
+(1 row)
+
+select get_category('Meat/Poultry');
+     get_category     
+----------------------
+ (14,Meat/Poultry,14)
+(1 row)
+
+-- Non-existent category
+select get_category('bad category');
+ get_category 
+--------------
+ 
+(1 row)
+
+-- NULL
+select get_category(null::text);
+ get_category 
+--------------
+ 
+(1 row)
+
+select get_category(1);
+ get_category 
+--------------
+ (1,Other,1)
+(1 row)
+
+select get_category(2);
+ get_category 
+--------------
+ (2,Baby,2)
+(1 row)
+
+select get_category(3);
+    get_category     
+---------------------
+ (3,Baking/Spices,3)
+(1 row)
+
+-- Non-existent category
+select get_category(1000);
+ get_category 
+--------------
+ 
+(1 row)
+
+-- NULL
+select get_category(null::bigint);
+ get_category 
+--------------
+ 
+(1 row)
+

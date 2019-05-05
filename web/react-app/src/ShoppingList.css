@@ -1,0 +1,28 @@
+.shopping-list-item-checkbox {
+    width: 8.33%;
+}
+
+.shopping-list-item-category {
+    width: 30%;
+}
+
+.shopping-list-footer {
+    text-align: left;
+}
+
+.shopping-list-footer button {
+    margin-left: 1em;
+}
+
+@keyframes yellowfade {
+    from {
+        background: green;
+    }
+    to {
+        background: transparent;
+    }
+}
+
+.item-highlight {
+    animation: yellowfade 1s;
+}

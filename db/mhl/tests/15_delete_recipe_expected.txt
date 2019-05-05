@@ -1,0 +1,15 @@
+\set VERBOSITY terse
+select delete_recipe(null, null);
+ERROR:  Recipe <NULL> for account <NULL> not found!
+select delete_recipe(1, null);
+ERROR:  Recipe <NULL> for account 1 not found!
+select delete_recipe(null, 3);
+ERROR:  Recipe 3 for account <NULL> not found!
+select delete_recipe(1, 3);
+ delete_recipe 
+---------------
+ 
+(1 row)
+
+select delete_recipe(1, 3);
+ERROR:  Recipe 3 for account 1 not found!

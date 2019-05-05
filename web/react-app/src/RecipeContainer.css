@@ -1,0 +1,11 @@
+.recipe-label {
+    padding-right: 1em;
+}
+
+.recipe-edit .form-group {
+    padding-top: 1em;
+}
+
+.recipe-item-delete {
+    width: 8.33%;
+}
