@@ -10,7 +10,7 @@ MHL consist's of a front-end web application, api server, and backend
 PostgreSQL database. The web site is built with React. The api is
 built with nodejs and restify.
 
-This repository also contains scripts to test and server MHL using
+This repository also contains scripts to test and serve MHL using
 docker.
 
 ## Build & test requirements
