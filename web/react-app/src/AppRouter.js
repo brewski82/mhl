@@ -27,7 +27,6 @@
 */
 
 import React from 'react';
-import { connect } from "react-redux";
 import { BrowserRouter as Router, Route } from "react-router-dom";
 import { Nav } from './Nav.js';
 import { ShoppingList } from './ShoppingList';
@@ -36,7 +35,6 @@ import { RecipeContainer } from './RecipeContainer';
 import { Account } from './Account';
 import { Login } from './Login';
 import { Footer } from './Footer';
-import { loadCategories, doLogin } from './redux/actions';
 
 const About = () => <div>
                       <h2>About</h2>
@@ -51,32 +49,20 @@ const About = () => <div>
                       </div>
                     </div>;
 
-class AppRouterComponent extends React.Component {
-
-    componentDidMount() {
-        this.props.loadCategories();
-        this.props.doLogin();
-    }
-
-    render() {
-        return (
-            <Router>
-              <div className="container">
-                <Nav/>
-                <main role="main">
-                  <Route path="/" exact render={props => (<ShoppingList shoppingListId={this.props.currentShoppingListId} {...props}/>)} />
-                  <Route path="/shopping-lists/" exact component={ShoppingListContainer} />
-                  <Route path="/recipes/" exact component={RecipeContainer} />
-                  <Route path="/about/" exact component={About} />
-                  <Route path="/account/" exact component={Account} />
-                  <Route path="/login/" exact component={Login} />
-                </main>
-                <Footer/>
-              </div>
-            </Router>
-        );}
+export function AppRouter() {
+    return (
+        <Router>
+          <div className="container">
+            <Nav/>
+            <main role="main">
+              <Route path="/" exact render={props => (<ShoppingList {...props}/>)} />
+              <Route path="/shopping-lists/" exact component={ShoppingListContainer} />
+              <Route path="/recipes/" exact component={RecipeContainer} />
+              <Route path="/about/" exact component={About} />
+              <Route path="/account/" exact component={Account} />
+              <Route path="/login/" exact component={Login} />
+            </main>
+            <Footer/>
+          </div>
+        </Router>);
 }
-
-const AppRouter = connect(state => ({currentShoppingListId: state.currentShoppingListId}), {loadCategories, doLogin})(AppRouterComponent);
-
-export { AppRouter, AppRouterComponent };

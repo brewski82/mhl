@@ -26,20 +26,14 @@
 
 */
 
-/**
-* Pass this function an event and callback function, and it will call
-* the callback if the event is an Enter key press.
-*/
-export function checkForEnterKey(event, handleEnterFn) {
-    if (event.key === 'Enter') {
-        handleEnterFn();
-    }
-}
+import { render } from '@testing-library/react';
+import React from 'react';
+import { AppRouter } from '../AppRouter';
+import {SetNumberOfShoppingListItemsContext} from '../App';
+import {setSpinnerFunction} from '../api/actions';;
+const fn = jest.fn();
+setSpinnerFunction(fn);
 
-/**
-* Sleep the specified number of milliseconds. Call like:
-* await sleep(3000);
-*/
-export function sleep(ms) {
-  return new Promise(resolve => setTimeout(resolve, ms));
-}
+it('AppRouter renders without crashing', () => {
+    render(<SetNumberOfShoppingListItemsContext.Provider value={jest.fn()}><AppRouter/></SetNumberOfShoppingListItemsContext.Provider>);
+});

@@ -26,8 +26,14 @@
 
 */
 
-import { createStore, applyMiddleware } from 'redux';
-import myHoneysListApp from './reducers';
-import thunk from 'redux-thunk';
-const store = createStore(myHoneysListApp, applyMiddleware(thunk));
-export default store;
+import { render } from '@testing-library/react';
+import React from 'react';
+import { Footer } from '../Footer';
+import {setSpinnerFunction} from '../api/actions';;
+const fn = jest.fn();
+setSpinnerFunction(fn);
+
+
+it('Footer renders without crashing', () => {
+    render(<Footer/>);
+});

@@ -27,14 +27,10 @@
 */
 
 import React from 'react';
-import ReactDOM from 'react-dom';
-import {shallow} from 'enzyme';
-import Enzyme from 'enzyme';
-import { Provider } from "react-redux";
-import configureMockStore from 'redux-mock-store';
-import { RecipeContainer, RecipeContainerComponent, RecipeRow, EditRecipe, EditRecipeComponent } from '../RecipeContainer';
-import thunk from 'redux-thunk';
-const mockStore = configureMockStore([thunk]);
+import { render, fireEvent, waitFor } from '@testing-library/react';
+import '@testing-library/jest-dom/extend-expect';
+import { RecipeContainer, RecipeRow, EditRecipe } from '../RecipeContainer';
+import {IsLoggedInContext, CurrentShoppingListIdContext} from '../App';
 const recipes = [
     {
         recipeId: 1, recipeName: "name", recipeDescription: "description", recipeSource: "source"
@@ -46,77 +42,80 @@ const recipeItems = [
         recipeItems: [{recipeItemId: 1, recipeItemValue: "cheese"}]
     }
 ];
-const store = mockStore({ recipes, isLoggedIn: true, currentShoppingListId: 1, recipeItems });
-import Adapter from 'enzyme-adapter-react-16';
 
-Enzyme.configure({ adapter: new Adapter() });
+test('Recipe row renders without crashing', () => {
+    render(<RecipeRow recipe={recipes[0]} editRecipe={jest.fn()} addItemsToList={jest.fn()} />);
+});
+
 
 test('Recipe Container Renders', () => {
-    const div = document.createElement('div');
-    ReactDOM.render(<Provider store={store}><RecipeContainer /></Provider>, div);
-    ReactDOM.unmountComponentAtNode(div);
+    render(<RecipeContainer />);
 });
 
 test('Edit Recipe Renders', () => {
-    const div = document.createElement('div');
-    ReactDOM.render(<Provider store={store}><EditRecipe recipeId={1} /></Provider>, div);
-    ReactDOM.unmountComponentAtNode(div);
+    render(<EditRecipe recipeId={1} />);
 });
 
-test('Recipe Row Renders', () => {
-    const div = document.createElement('div');
-    ReactDOM.render(<Provider store={store}><RecipeRow recipe={{recipeName: "name"}} /></Provider>, div);
-    ReactDOM.unmountComponentAtNode(div);
+
+// test('Edit Recipe', async () => {
+//     const {getByText, queryByText} = render
+//     (
+//         <CurrentShoppingListIdContext.Provider value={1}>
+//           <IsLoggedInContext.Provider value={true}>
+//             <RecipeContainer loadRecipes={jest.fn()} isLoggedIn={true} recipes={recipes} createRecipe={jest.fn()} />
+//           </IsLoggedInContext.Provider>
+//         </CurrentShoppingListIdContext.Provider>
+//     );
+//     const button = getByText('Create New Recipe');
+//     expect(button).toBeTruthy();
+//     fireEvent.click(button);
+//     await waitFor(() => getByText('Back to recipe list'));
+//     expect(getByText('Back to recipe list')).toBeTruthy();
+// });
+
+// test('Add items to list', async () => {
+//     const mock = jest.fn();
+//     const {getByText} = render
+//     (
+//         <CurrentShoppingListIdContext.Provider value={1}>
+//           <IsLoggedInContext.Provider value={true}>
+//             <RecipeContainer addRecipeToShoppingList={mock} loadRecipes={jest.fn()} isLoggedIn={true} recipes={recipes} createRecipe={jest.fn()} />
+//           </IsLoggedInContext.Provider>
+//         </CurrentShoppingListIdContext.Provider>
+//     );
+//     const button = getByText('Add Recipe to Shopping List');
+//     expect(button).toBeTruthy();
+//     fireEvent.click(button);
+//     await waitFor(() => expect(mock).toHaveBeenCalled());
+// });
+
+// test('Show recipe list', async () => {
+//     const mock = jest.fn();
+//     const {getByText, queryByText} = render(<Provider store={store}><RecipeContainerComponent addRecipeToShoppingList={mock} loadRecipes={jest.fn()} isLoggedIn={true} recipes={recipes} createRecipe={jest.fn()} /></Provider>);
+//     const button = getByText('Edit');
+//     expect(button).toBeTruthy();
+//     fireEvent.click(button);
+//     await waitFor(() => expect(queryByText('Create New Recipe')).toBeFalsy());
+//     await waitFor(() => expect(queryByText('Back to recipe list')).toBeTruthy);
+//     fireEvent.click(getByText('Back to recipe list'));
+//     await waitFor(() => expect(queryByText('Create New Recipe')).toBeTruthy);
+//     await waitFor(() => expect(queryByText('Back to recipe list')).toBeFalsy);
+// });
+
+test('Update recipe', async () => {
+    const mockFn = jest.fn();
+    const {getByText} = render(<RecipeRow recipe={recipes[0]} editRecipe={mockFn} addItemsToList={jest.fn()} />);
+    const button = getByText('Edit');
+    expect(button).toBeTruthy();
+    fireEvent.click(button);
+    await waitFor(() => expect(mockFn).toHaveBeenCalled());
 });
 
-test('Edit Recipe', () => {
-    const recipeContainer = shallow(<RecipeContainerComponent loadRecipes={jest.fn()}/>).instance();
-    expect(recipeContainer.state.showList).toBeTruthy();
-    recipeContainer.editRecipe(1);
-    expect(recipeContainer.state.showList).toBeFalsy();
-});
-
-test('Add items to list', () => {
-    const recipeContainer = shallow(<RecipeContainerComponent loadRecipes={jest.fn()} addRecipeToShoppingList={jest.fn()}/>).instance();
-    recipeContainer.addItemsToList(1);
-    expect(recipeContainer.props.addRecipeToShoppingList).toHaveBeenCalled();
-});
-
-test('Show recipe list', () => {
-    const recipeContainer = shallow(<RecipeContainerComponent loadRecipes={jest.fn()}/>).instance();
-    expect(recipeContainer.state.showList).toBeTruthy();
-    recipeContainer.editRecipe(1);
-    expect(recipeContainer.state.showList).toBeFalsy();
-    recipeContainer.showRecipeList();
-    expect(recipeContainer.state.showList).toBeTruthy();
-});
-
-test('Create recipe', async () => {
-    expect.assertions(2);
-    const recipeContainer = shallow(<RecipeContainerComponent loadRecipes={jest.fn()} createRecipe={jest.fn()}/>).instance();
-    await recipeContainer.createRecipe();
-    expect(recipeContainer.props.createRecipe).toHaveBeenCalled();
-    expect(recipeContainer.state.showList).toBeFalsy();
-});
-
-test('Update recipe', () => {
-    const editRecipe = shallow(<EditRecipeComponent loadRecipeItems={jest.fn()} recipeId={1} recipes={recipes} recipeItems={recipeItems} updateRecipe={jest.fn()}/>).instance();
-    editRecipe.updateRecipe();
-    expect(editRecipe.props.updateRecipe).toHaveBeenCalled();
-    expect(editRecipe.state.showRecipeNameInput).toBeFalsy();
-});
-
-test('Add recipe item', () => {
-    const editRecipe = shallow(<EditRecipeComponent loadRecipeItems={jest.fn()} recipeId={1} recipes={recipes} recipeItems={recipeItems} createRecipeItem={jest.fn()}/>).instance();
-    editRecipe.state.recipeItemValue = "new item";
-    editRecipe.addRecipeItem();
-    expect(editRecipe.props.createRecipeItem).toHaveBeenCalledWith(1, "new item");
-    expect(editRecipe.state.recipeItemValue).toBe("");
-});
-
-test('Update recipe item', () => {
-    const editRecipe = shallow(<EditRecipeComponent loadRecipeItems={jest.fn()} recipeId={1} recipes={recipes} recipeItems={recipeItems} updateRecipeItem={jest.fn()}/>).instance();
-    editRecipe.updateRecipeItem(1, "new item");
-    expect(editRecipe.props.updateRecipeItem).toHaveBeenCalledWith(1, 1, "new item");
-    expect(editRecipe.state.showRecipeItemInputId).toBe(0);
+test('Add recipe item', async () => {
+    const mockFn = jest.fn();
+    const {getByText} = render(<RecipeRow recipe={recipes[0]} editRecipe={jest.fn()} addItemsToList={mockFn} />);
+    const button = getByText('Add Recipe to Shopping List');
+    expect(button).toBeTruthy();
+    fireEvent.click(button);
+    await waitFor(() => expect(mockFn).toHaveBeenCalled());
 });

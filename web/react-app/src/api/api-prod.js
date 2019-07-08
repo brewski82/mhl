@@ -77,6 +77,9 @@ const apiProd = {
     getRecipes: () => {
         return doFetchGet('/api/recipes');
     },
+    getRecipe: (recipeId) => {
+        return doFetchGet(`/api/recipes/${recipeId}`);
+    },
     updateRecipe: (recipeId, name, description, source) => {
         return doFetchPut(`/api/recipes/${recipeId}`, {}, {name, description, source});
     },
@@ -127,6 +130,9 @@ const apiProd = {
     },
     getCategories: () => {
         return doFetchGet('/api/categories');
+    },
+    getShoppingList: (shoppingListId) => {
+        return doFetchGet(`/api/shopping-lists/${shoppingListId}`);
     },
     getShoppingLists: () => {
         return doFetchGet('/api/shopping-lists');

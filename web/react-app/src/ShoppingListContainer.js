@@ -26,33 +26,52 @@
 
 */
 
-import React from 'react';
+import React, {useContext, useState, useEffect} from 'react';
 import { NavLink } from "react-router-dom";
-import { changeCurrentShoppingListId } from './redux/actions';
-import { connect } from "react-redux";
+import {IsLoggedInContext, CurrentShoppingListIdContext} from './App';
+import {getShoppingLists} from './api/actions';
 
 function ShoppingListRow(props) {
+    const {setCurrentShoppingListId} = useContext(CurrentShoppingListIdContext);
     return (
         <li>
-          {props.shoppingList.shoppingListName} - <NavLink to="/" onClick={() => props.changeCurrentShoppingListId(props.shoppingList.shoppingListId)}>Use List</NavLink>
+          {props.shoppingList.shoppingListName} - <NavLink to="/" onClick={() => setCurrentShoppingListId(props.shoppingList.shoppingListId)}>Use List</NavLink>
         </li>
     );
 }
 
-class ShoppingListContainerComponent extends React.Component {
+function ShoppingListContainer() {
+    const isLoggedIn = useContext(IsLoggedInContext);
+    const [isLoading, setIsLoading] = useState(true);
+    const [shoppingLists, setShoppingLists] = useState([]);
 
-    render() {
-        if (!this.props.isLoggedIn) {
-            return (<div><p>Please login to see your shopping lists.</p></div>);
-        }
-        return (
-            <ul>
-              {this.props.shoppingLists.map((shoppingList, index) => (<ShoppingListRow key={index} shoppingList={shoppingList} changeCurrentShoppingListId={this.props.changeCurrentShoppingListId}/>))}
-            </ul>
-        );
+
+    useEffect(() => {
+        (async () => {
+            if (isLoggedIn) {
+                const lists = await getShoppingLists();
+                setShoppingLists(lists);
+                setIsLoading(false);
+            }
+        })();
+    }, [isLoggedIn]);
+
+    if (!isLoggedIn) {
+        return (<div><p>Please login to see your shopping lists.</p></div>);
     }
+    if (isLoading) {
+        return (<div><p>Loading your shopping lists...</p></div>);
+    }
+    if (shoppingLists.length === 0) {
+        return (<div><p>No shopping lists to display.</p></div>);
+    }
+    return (
+        <ul>
+          {shoppingLists.map((shoppingList, index) => (<ShoppingListRow key={index} shoppingList={shoppingList}/>))}
+        </ul>
+    );
 };
 
-const ShoppingListContainer = connect((state) => ({shoppingLists: state.shoppingLists, isLoggedIn: state.isLoggedIn}), {changeCurrentShoppingListId})(ShoppingListContainerComponent);
+// const ShoppingListContainer = connect((state) => ({shoppingLists: state.shoppingLists, isLoggedIn: state.isLoggedIn}), {changeCurrentShoppingListId})(ShoppingListContainerComponent);
 
-export {ShoppingListContainer, ShoppingListContainerComponent};
+export {ShoppingListContainer};

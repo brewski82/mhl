@@ -56,8 +56,8 @@ MHL_DB_PORT="${MHL_DB_PORT:-5656}"
 MHL_CONTAINER_RUNTIME="${MHL_CONTAINER_RUNTIME:-docker}"
 
 log_message "Run database migration using port $MHL_DB_PORT and container runtime $MHL_CONTAINER_RUNTIME."
-cd /home/wbruschi/dev/pghops
-python3 -m pghops.main.test --cluster-directory="$db_dir" \
+
+pghops_test --cluster-directory="$db_dir" \
             --psql-base-args="--port=$MHL_DB_PORT --host=localhost --username=postgres --echo-all --no-psqlrc --set=SHOW_CONTEXT=never" \
             --container-port="$MHL_DB_PORT" \
             --container-runtime="$MHL_CONTAINER_RUNTIME" \

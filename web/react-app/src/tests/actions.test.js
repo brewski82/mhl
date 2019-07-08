@@ -26,98 +26,146 @@
 
 */
 
-import configureMockStore from 'redux-mock-store';
-import thunk from 'redux-thunk';
-import * as actions from '../redux/actions';;
+import * as actions from '../api/actions';;
 import fetchMock from 'fetch-mock';
 import { sleep } from '../Utils';
 
-const middlewares = [thunk];
-const mockStore = configureMockStore(middlewares);
-// const dispatch = jest.fn();
-
 describe('spinners', () => {
-    test('showSavedSpinner calls dispatch function and returns the provided value', () => {
-        const val = 1;
-        const fn = jest.fn();
-        const returnVal = actions.showSavedSpinner(fn, val);
-        expect(returnVal).toEqual(val);
-        expect(fn).toHaveBeenCalledWith({type: actions.SHOW_SAVED_SPINNER});
+    const fn = jest.fn();
+    actions.setSpinnerFunction(fn);
+    test('showSavedSpinner', () => {
+        actions.showSavedSpinner();
+        expect(fn).toHaveBeenCalledWith('saved');
     });
-    test('hideSpinner calls dispatch function and returns the provided value', async () => {
-        const val = 1;
-        const fn = jest.fn();
-        actions.hideSpinner(fn, val);
+    test('showSavingSpinner', () => {
+        actions.showSavingSpinner();
+        expect(fn).toHaveBeenCalledWith('saving');
+    });
+    test('showLoadingSpinner', () => {
+        actions.showLoadingSpinner();
+        expect(fn).toHaveBeenCalledWith('loading');
+    });
+    test('showErrorSpinner', () => {
+        actions.showErrorSpinner();
+        expect(fn).toHaveBeenCalledWith('error');
+    });
+    test('hideSpinner', async () => {
+        actions.hideSpinner();
         await sleep(3000);
-        expect(fn).toHaveBeenCalledWith({type: actions.HIDE_SPINNER});
+        expect(fn).toHaveBeenCalledWith('default');
     });
 });
 
-// describe('current shopping list', () => {
-//     afterEach(() => {
-//         fetchMock.restore();
-//     });
+async function runTest(actionFunction) {
+    const fn = jest.fn();
+    const result = await actionFunction();
+    expect(fn).toHaveBeenCalled();
+    return result;
+}
 
-//     test('createShoppingListItem', () => {
-//         const item = 'myitem';
-//         const dispatch = jest.fn();
-//         fetchMock.postOnce('/api/v1/shopping-lists', {
-//             body: { value: item },
-//             headers: { 'content-type': 'application/json' }
-//         });
+async function runTestForNumber(actionFunction) {
+    const result = await runTest(actionFunction);
+    expect(Number.isInteger(result)).toBeTruthy();
+}
 
-//         return actions.createShoppingListItem(1, item, true)(dispatch).then((response) => {
-//             console.log(response);
-//             expect(dispatch).toHaveBeenCalledWith(
-//                 {
-//                     "item": {"categoryId": 18, "propKey": 2, "shoppingListId": 1, "shoppingListItemChecked": false, "shoppingListItemId": 1, "shoppingListItemValue": "myitem"},
-//                     "type": "UPDATE_SHOPPING_LIST_ITEM"
-//                 });
-//             // expect(dispatch).toHaveBeenCalledWith({
-//             //     type: actions.ADD_ITEM_CURRENT_SHOPPING_LIST,
-//             //     item,
-//             //     propKey: 1
-//             // });
-//             // expect(response.value).toBe(item);
-//         });
-//     });
+async function runTestForArray(actionFunction) {
+    const result = await runTest(actionFunction);
+    expect(Array.isArray(result)).toBeTruthy();
+}
 
-// });
+async function runTestForObject(actionFunction) {
+    const result = await runTest(actionFunction);
+    expect(result instanceof Object).toBeTruthy();
+}
 
-// describe('async actions', () => {
-//   afterEach(() => {
-//     fetchMock.restore()
-//   })
+test('createRecipe', () => {
+    runTestForNumber(actions.createRecipe);
+});
 
-//   it('creates FETCH_TODOS_SUCCESS when fetching todos has been done', () => {
-//     fetchMock.getOnce('/todos', {
-//       body: { todos: ['do something'] },
-//       headers: { 'content-type': 'application/json' }
-//     })
+test('loadRecipes', () => {
+    runTestForArray(actions.loadRecipes);
+});
 
-//     const expectedActions = [
-//       { type: types.FETCH_TODOS_REQUEST },
-//       { type: types.FETCH_TODOS_SUCCESS, body: { todos: ['do something'] } }
-//     ]
-//     const store = mockStore({ todos: [] })
+test('getRecipe', () => {
+    runTestForObject(actions.getRecipe);
+});
 
-//     return store.dispatch(actions.fetchTodos()).then(() => {
-//       // return of async actions
-//       expect(store.getActions()).toEqual(expectedActions)
-//     })
-//   })
-// })
+test('getRecipeItems', () => {
+    runTestForObject(actions.getRecipeItems);
+});
 
-// describe('actions', () => {
+test('updateRecipe', () => {
+    runTest(actions.updateRecipe);
+});
 
+test('createRecipeItem', () => {
+    runTestForNumber(actions.createRecipeItem);
+});
 
+test('deleteRecipeItem', () => {
+    runTest(actions.deleteRecipeItem);
+});
 
-//   it('should create an action to add an item to the shopping list', () => {
-//     const item = 'eggs'
-//     const expectedAction = {
-//       type: actions.ADD_ITEM_CURRENT_SHOPPING_LIST,
-//       item
-//     }
-//     expect(actions.createShoppingListItem(item)).toEqual(expectedAction)
-//   })
-// });
+test('updateRecipeItem', () => {
+    runTest(actions.updateRecipeItem);
+});
+
+test('addRecipeToShoppingList', () => {
+    runTest(actions.addRecipeToShoppingList);
+});
+
+test('createShoppingListItem', () => {
+    runTest(actions.createShoppingListItem);
+});
+
+test('updateShoppingListItem', () => {
+    runTest(actions.updateShoppingListItem);
+});
+
+test('createShoppingList', () => {
+    runTest(actions.createShoppingList);
+});
+
+test('loadCurrentShoppingListOrCreateNew', () => {
+    runTestForObject(actions.loadCurrentShoppingListOrCreateNew);
+});
+
+test('getShoppingListItems', () => {
+    runTestForArray(actions.getShoppingListItems);
+});
+
+test('getShoppingList', () => {
+    runTestForObject(actions.getShoppingList);
+});
+
+test('getShoppingLists', () => {
+    runTestForArray(actions.getShoppingLists);
+});
+
+test('getCategories', () => {
+    runTestForArray(actions.getCategories);
+});
+
+test('loadEmails', () => {
+    runTest(actions.loadEmails);
+});
+
+test('createAccountEmail', () => {
+    runTest(actions.createAccountEmail);
+});
+
+test('createLogin', () => {
+    runTest(actions.createLogin);
+});
+
+test('doLogout', () => {
+    runTest(actions.doLogout);
+});
+
+test('deactivateAccount', () => {
+    runTest(actions.deactivateAccount);
+});
+
+test('updateShoppingListName', () => {
+    runTest(actions.updateShoppingListName);
+});

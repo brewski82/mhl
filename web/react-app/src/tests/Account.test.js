@@ -27,38 +27,40 @@
 */
 
 import React from 'react';
-import ReactDOM from 'react-dom';
-import {shallow} from 'enzyme';
-import Enzyme from 'enzyme';
-import { Provider } from "react-redux";
-import configureMockStore from 'redux-mock-store';
-import { Account, AccountComponent } from '../Account';
-import thunk from 'redux-thunk';
-// import { applyMiddleware } from 'redux';
-const mockStore = configureMockStore([thunk]);
-const loadEmails = jest.fn();
-const store = mockStore({ isLoggedIn: true, categories: [], shoppingLists: [] });
-import Adapter from 'enzyme-adapter-react-16';
-
-Enzyme.configure({ adapter: new Adapter() });
+import { render, fireEvent, waitFor, screen } from '@testing-library/react';
+import '@testing-library/jest-dom/extend-expect';
+import { Account } from '../Account';
+import {IsLoggedInContext} from '../App';
+import {setSpinnerFunction} from '../api/actions';;
+const fn = jest.fn();
+setSpinnerFunction(fn);
 
 test('Renders', () => {
-    const div = document.createElement('div');
-    ReactDOM.render(<Provider store={store}><Account/></Provider>, div);
-    ReactDOM.unmountComponentAtNode(div);
+    render(<Account/>);
 });
 
-test('Good email', () => {
-    const accountComponent = shallow(<AccountComponent loadEmails={loadEmails} createAccountEmail={jest.fn()} />).instance();
-    accountComponent.state.addEmailInput = "a@example.com";
-    accountComponent.handleAddEmail();
-    expect(accountComponent.props.createAccountEmail).toHaveBeenCalledTimes(1);
-    expect(accountComponent.state.isValid).toBeTruthy();
+test('Good email', async () => {
+    const { getByPlaceholderText, getByText } = render(<IsLoggedInContext.Provider value={true}><Account/></IsLoggedInContext.Provider>);
+    const button = getByText('Add');
+    const emailInput = getByPlaceholderText('Add email...');
+    fireEvent.change(emailInput, { target: { value: "test@example.com" } });
+    fireEvent.click(button);
+    await waitFor(() => screen.getByRole('alert'));
+    expect(screen.getByRole('alert')).toHaveTextContent('Please check you mail to verify your new email address.');
 });
 
-test('Bad email', () => {
-    const accountComponent = shallow(<AccountComponent loadEmails={loadEmails} createAccountEmail={jest.fn()} />).instance();
-    accountComponent.state.addEmailInput = "a";
-    accountComponent.handleAddEmail();
-    expect(accountComponent.state.isValid).toBeFalsy();
+test('Bad email', async () => {
+    const { getByPlaceholderText, getByText } = render(<IsLoggedInContext.Provider value={true}><Account/></IsLoggedInContext.Provider>);
+    const button = getByText('Add');
+    const emailInput = getByPlaceholderText('Add email...');
+    fireEvent.change(emailInput, { target: { value: "not-an-email" } });
+    fireEvent.click(button);
+    expect(emailInput).toHaveClass("is-invalid");
+});
+
+test('Logout', async () => {
+    const { getByRole } = render(<IsLoggedInContext.Provider value={true}><Account/></IsLoggedInContext.Provider>);
+    const logoutButton = getByRole('button', {name: "Log Out"});
+    fireEvent.click(logoutButton);
+    expect(screen.findAllByText('Please login to manage your account.')).toBeTruthy();
 });

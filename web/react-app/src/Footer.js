@@ -25,48 +25,45 @@
   interface.
 
 */
-import React from 'react';
-import { connect } from "react-redux";
+import React, {useContext} from 'react';
+import {SpinnerContext} from './App';
 
-class SpinnerComponent extends React.Component {
-    defaultRender = <div/>;
-    savingSpinner = <div className="fixed-bottom d-flex justify-content-end align-items-center text-success">Saving...
-                      <div className="spinner-border spinner-border-sm" role="status">
-                        <span className="sr-only">
-                          Loading...
-                        </span>
-                      </div>
-                    </div>;
-    loadingSpinner = <div className="fixed-bottom d-flex justify-content-end align-items-center text-info">Loading...
-                       <div className="spinner-border spinner-border-sm" role="status">
-                         <span className="sr-only">
-                           Loading...
-                         </span>
-                       </div>
-                     </div>;
-    savedSpinner = <div className="fixed-bottom d-flex justify-content-end align-items-center text-success">Saved!</div>;
-    errorSpinner = <div className="fixed-bottom d-flex justify-content-end align-items-center text-danger">An error occurred. Please refresh and try again.</div>;
+function Spinner() {
+    const spinnerState = useContext(SpinnerContext);
+    const defaultRender = <div/>;
+    const savingSpinner = <div className="fixed-bottom d-flex justify-content-end align-items-center text-success">Saving...
+                            <div className="spinner-border spinner-border-sm" role="status">
+                              <span className="sr-only">
+                                Loading...
+                              </span>
+                            </div>
+                          </div>;
+    const loadingSpinner = <div className="fixed-bottom d-flex justify-content-end align-items-center text-info">Loading...
+                             <div className="spinner-border spinner-border-sm" role="status">
+                               <span className="sr-only">
+                                 Loading...
+                               </span>
+                             </div>
+                           </div>;
+    const savedSpinner = <div className="fixed-bottom d-flex justify-content-end align-items-center text-success">Saved!</div>;
+    const errorSpinner = <div className="fixed-bottom d-flex justify-content-end align-items-center text-danger">An error occurred. Please refresh and try again.</div>;
 
-    render() {
-        switch (this.props.spinnerState) {
-        case "saving": return this.savingSpinner;
-        case "saved": return this.savedSpinner;
-        case "error": return this.errorSpinner;
-        case "loading": return this.loadingSpinner;
-        default: return this.defaultRender;
-        }
+
+    switch (spinnerState) {
+    case "saving": return savingSpinner;
+    case "saved": return savedSpinner;
+    case "error": return errorSpinner;
+    case "loading": return loadingSpinner;
+    default: return defaultRender;
     }
 }
 
-const Spinner = connect(state => ({spinnerState: state.spinnerState}), null)(SpinnerComponent);
-
-export class Footer extends React.Component {
-    render() {
-        return <footer className="footer navbar fixed-bottom">
-                 <div className="container">
-                   <p><span className="text-muted">Copyright 2019 William R. Bruschi - This application is licensed under the <a href="https://www.gnu.org/licenses/agpl-3.0.en.html">AGPL</a> license and the <a href="https://github.com/brewski82/mhl">source</a> is available.</span></p>
-                 </div>
-                 <Spinner/>
-               </footer>;
-    }
+export function Footer() {
+    return ( <footer className="footer navbar fixed-bottom">
+               <div className="container">
+                 <p><span className="text-muted">Copyright 2019 William R. Bruschi - This application is licensed under the <a href="https://www.gnu.org/licenses/agpl-3.0.en.html">AGPL</a> license and the <a href="https://github.com/brewski82/mhl">source</a> is available.</span></p>
+               </div>
+               <Spinner/>
+             </footer>
+           );
 }

@@ -26,59 +26,73 @@
 
 */
 
-import React from 'react';
+import React, { useContext, useState, useEffect } from 'react';
 import { NavLink } from "react-router-dom";
-import { connect } from "react-redux";
+import {IsLoggedInContext, CurrentShoppingListIdContext, CurrentShoppingListItemsContext, SetNumberOfShoppingListItemsContext, NumberOfShoppingListItemsContext} from './App';
+import { getShoppingListItems } from './api/actions';
 
-class NavComponent extends React.Component {
-    saveList = <NavLink to="/login/" className="nav-link" activeClassName='is-active' ><span className="main-save-list">Save List</span></NavLink>;
-    account = <NavLink to="/account/" className="nav-link" activeClassName='is-active' >Account</NavLink>;
-    logIn = <NavLink to="/login/" className="nav-link" activeClassName='is-active' >Log In</NavLink>;;
-    render() {
-        const shoppingList = this.props.shoppingListItems.find(({shoppingListId}) => shoppingListId === this.props.currentShoppingListId);
-        let numberOfShoppingListItems = 0;
-        if (shoppingList && shoppingList.shoppingListItems) {
-            numberOfShoppingListItems = shoppingList.shoppingListItems.length;
-        }
-        let accountDiv = this.logIn;
-        if (this.props.isLoggedIn) {
-            accountDiv = this.account;
-        } else if (numberOfShoppingListItems > 0) {
-            accountDiv = this.saveList;
-        }
-        return (
-            <div>
-              <nav className="navbar navbar-expand-md navbar-dark bg-dark">
-                <a className="navbar-brand" href="/">My Honey's List</a>
-                <button className="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarCollapse" aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation">
-                  <span className="navbar-toggler-icon"></span>
-                </button>
-                <div className="collapse navbar-collapse" id="navbarCollapse">
-                  <ul className="navbar-nav mr-auto">
-                    <li className="nav-item">
-                      <NavLink exact={true} to="/" className="nav-link" activeClassName='is-active' >Home</NavLink>
-                    </li>
-                    <li className="nav-item">
-                      <NavLink to="/shopping-lists/" className="nav-link" activeClassName='is-active' >Lists</NavLink>
-                    </li>
-                    <li className="nav-item">
-                      <NavLink to="/recipes/" className="nav-link" activeClassName='is-active' >Recipes</NavLink>
-                    </li>
-                    <li className="nav-item">
-                      <NavLink to="/about/" className="nav-link" activeClassName='is-active' >About</NavLink>
-                    </li>
-                  </ul>
-                  <ul className="navbar-nav mt-2 mt-md-0">
-                    <li className="nav-item">
-                      {accountDiv}
-                    </li>
-                  </ul>
-                </div>
-              </nav>
-            </div>);
+export function Nav() {
+    const isLoggedIn = useContext(IsLoggedInContext);
+    const currentShoppingListItems = useContext(CurrentShoppingListItemsContext);
+    const {currentShoppingListId} = useContext(CurrentShoppingListIdContext);
+    const numberOfShoppingListItems = useContext(NumberOfShoppingListItemsContext);
+    const setNumberOfShoppingListItems = useContext(SetNumberOfShoppingListItemsContext);
+    const saveList = <NavLink to="/login/" className="nav-link" activeClassName='is-active' ><span className="main-save-list">Save List</span></NavLink>;
+    const account = <NavLink to="/account/" className="nav-link" activeClassName='is-active' >Account</NavLink>;
+    const logIn = <NavLink to="/login/" className="nav-link" activeClassName='is-active' >Log In</NavLink>;;
+
+    useEffect(() => {
+        (async () => {
+            if (currentShoppingListId !== 0) {
+                const shoppingListItems = getShoppingListItems(currentShoppingListId);
+                if (shoppingListItems) {
+                    setNumberOfShoppingListItems(shoppingListItems.length);
+                }
+            }
+        })();
+    }, [currentShoppingListId]);
+
+    useEffect(() => {
+        setNumberOfShoppingListItems(currentShoppingListItems.length);
+    }, [currentShoppingListItems]);
+
+    let accountDiv = logIn;
+    if (isLoggedIn) {
+        accountDiv = account;
+    } else if (numberOfShoppingListItems > 0) {
+        accountDiv = saveList;
     }
+    return (
+        <div>
+          <SetNumberOfShoppingListItemsContext.Provider value={setNumberOfShoppingListItems}>
+            <nav className="navbar navbar-expand-md navbar-dark bg-dark">
+              <a className="navbar-brand" href="/">My Honey's List</a>
+              <button className="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarCollapse" aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation">
+                <span className="navbar-toggler-icon"></span>
+              </button>
+              <div className="collapse navbar-collapse" id="navbarCollapse">
+                <ul className="navbar-nav mr-auto">
+                  <li className="nav-item">
+                    <NavLink exact={true} to="/" className="nav-link" activeClassName='is-active' >Home</NavLink>
+                  </li>
+                  <li className="nav-item">
+                    <NavLink to="/shopping-lists/" className="nav-link" activeClassName='is-active' >Lists</NavLink>
+                  </li>
+                  <li className="nav-item">
+                    <NavLink to="/recipes/" className="nav-link" activeClassName='is-active' >Recipes</NavLink>
+                  </li>
+                  <li className="nav-item">
+                    <NavLink to="/about/" className="nav-link" activeClassName='is-active' >About</NavLink>
+                  </li>
+                </ul>
+                <ul className="navbar-nav mt-2 mt-md-0">
+                  <li className="nav-item">
+                    {accountDiv}
+                  </li>
+                </ul>
+              </div>
+            </nav>
+          </SetNumberOfShoppingListItemsContext.Provider>
+        </div>
+    );
 }
-
-const Nav = connect(state => ({isLoggedIn: state.isLoggedIn, currentShoppingListId: state.currentShoppingListId, shoppingListItems: state.shoppingListItems}), {})(NavComponent);
-
-export { Nav };

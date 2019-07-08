@@ -3,7 +3,7 @@ services:
   web:
     image: ${MHL_WEB_TAG}
     volumes:
-      - ${MHL_WEB_CONFIG}:/etc/nginx/conf.d/default.conf
+      - ${MHL_WEB_CONFIG}:/etc/nginx/conf.d/default.conf:z
     ports:
      - ${MHL_WEB_PORT}:80
   api:
@@ -11,7 +11,7 @@ services:
     ports:
      - ${MHL_API_PORT}:8888
     volumes:
-      - ${MHL_API_CONFIG}:/usr/src/app/config/default.json
+      - ${MHL_API_CONFIG}:/usr/src/app/config/default.json:z
     command: npm start
     working_dir: /usr/src/app
   db:

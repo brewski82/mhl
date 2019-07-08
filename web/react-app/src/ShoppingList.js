@@ -26,33 +26,60 @@
 
 */
 
-import React from 'react';
-import { handleInputChange, checkForEnterKey } from './Utils';
-import { createShoppingListItem, createShoppingList, deleteShoppingListSelectedItems } from './redux/actions';
-import { connect } from "react-redux";
+import React, { useState, useContext, useEffect } from 'react';
+import { checkForEnterKey } from './Utils';
+import { createShoppingListItem, generateDefaultShoppingListName, getCategories, createShoppingList, loadCurrentShoppingListOrCreateNew } from './api/actions';
 import { ShoppingListName } from './ShoppingListName';
 import { ShoppingListItem } from './ShoppingListItem';
 import './ShoppingList.css';
+import {IsLoggedInContext, CurrentShoppingListItemsContext, CurrentShoppingListIdContext, CurrentShoppingListItemsDispatchContext, CurrentShoppingListRecipesContext, SetNumberOfShoppingListItemsContext} from './App';
+
+const CurrentShoppingListNameContext = React.createContext();
+const CategoryListContext = React.createContext([]);
 
 /**
  * Component for editing a shopping list. This is the default
  * component that will show on the home screen, even for user who are
  * not logged in.
  */
-class ShoppingListComponent extends React.Component {
-    constructor(props) {
-        super(props);
-        this.state = { createItemInput: "", showShoppingListNameInput: false };
-        this.handleInputChange = handleInputChange.bind(this);
-    }
+function ShoppingList(props) {
+    const [createItemInput, setCreateItemInput] = useState('');
+    const [currentShoppingListName, setCurrentShoppingListName] = useState(generateDefaultShoppingListName());
+    const isLoggedIn = useContext(IsLoggedInContext);
+    const {currentShoppingListId, setCurrentShoppingListId} = useContext(CurrentShoppingListIdContext);
+    const currentShoppingListItems = useContext(CurrentShoppingListItemsContext);
+    const currentShoppingListItemsDispatch  = useContext(CurrentShoppingListItemsDispatchContext);
+    const currentShoppingListRecipes = useContext(CurrentShoppingListRecipesContext);
+    const setNumberOfShoppingListItems = useContext(SetNumberOfShoppingListItemsContext);
+    const [categoryList, setCategoryList] = useState([]);
+
+    useEffect(() => {
+        (async () => {
+            if (categoryList.length === 0) {
+                const categories = await getCategories();
+                setCategoryList(categories);
+            }
+            if (isLoggedIn) {
+                if (currentShoppingListId === 0) {
+                    const shoppingList = await loadCurrentShoppingListOrCreateNew();
+                    setCurrentShoppingListId(shoppingList.shoppingListId);
+                    setNumberOfShoppingListItems(shoppingList.shoppingListItems.length);
+                }
+            }
+        })();
+    }, [isLoggedIn]);
+
+    useEffect(() => {
+        setNumberOfShoppingListItems(currentShoppingListItems.length);
+    });
 
     /**
      * Creates a new shopping list item.
      */
-    handleCreateItem = () => {
-        if (this.state.createItemInput.length > 0) {
-            this.props.createShoppingListItem(this.props.shoppingListId, this.state.createItemInput, this.props.isLoggedIn);
-            this.setState({ createItemInput: ""});
+    const handleCreateItem = () => {
+        if (createItemInput.length > 0) {
+            createShoppingListItem(currentShoppingListId, createItemInput, isLoggedIn, currentShoppingListItemsDispatch);
+            setCreateItemInput('');
         }
     };
 
@@ -61,19 +88,21 @@ class ShoppingListComponent extends React.Component {
      * by the "Lists" menu item. The new list is created with a
      * default shopping list name.
      */
-    handleCreateNewList = () => {
-        this.props.createShoppingList();
-    }
+    const handleCreateNewList = () => {
+        createShoppingList(currentShoppingListItemsDispatch, setCurrentShoppingListId);
+    };
 
     /**
      * Permanately deletes any marked shopping list items.
      */
-    handleDeleteSelectedItems = () => {this.props.deleteShoppingListSelectedItems(this.props.shoppingListId);}
+    const handleDeleteSelectedItems = () => {
+        currentShoppingListItemsDispatch({type: "delete selected items"});
+    };
 
     /**
      * Function to determine the sort order of shopping list items.
      */
-    sortShoppingListCompare = (a, b) => {
+    const sortShoppingListCompare = (a, b) => {
         if (a.shoppingListItemChecked && !b.shoppingListItemChecked) {
             return 1;
         }
@@ -95,8 +124,8 @@ class ShoppingListComponent extends React.Component {
             }
             return 0;
         }
-        let aCat = this.props.categories.find(({categoryId}) => a.categoryId === categoryId);
-        let bCat = this.props.categories.find(({categoryId}) => b.categoryId === categoryId);
+        let aCat = categoryList.find(({categoryId}) => a.categoryId === categoryId);
+        let bCat = categoryList.find(({categoryId}) => b.categoryId === categoryId);
         if (!aCat) {
             return 1;
         }
@@ -110,72 +139,55 @@ class ShoppingListComponent extends React.Component {
             return 1;
         }
         return 1;
-    }
-
-    render() {
-        let arrayToSort = this.props.shoppingListItems ? this.props.shoppingListItems.map(item => Object.assign({}, item)) : [];
-        arrayToSort.sort(this.sortShoppingListCompare);
-        let recipes = this.props.shoppingListRecipes.map(item => Object.assign({}, item));
-        recipes.sort((a, b) => a.recipeName.localeCompare(b.recipeName));
-
-        return (
-            <div>
-              <ShoppingListName shoppingListId={this.props.shoppingListId} />
-              <div className="form-group row">
-                <div className="col-sm-8">
-                  <input className="form-control" id="shopping-list-item" placeholder="Add item..."
-                         name="createItemInput"
-                         onChange={this.handleInputChange}
-                         onKeyPress={e => checkForEnterKey(e, this.handleCreateItem)}
-                         value={this.state.createItemInput} />
-                </div>
-                <div className="col-sm-4">
-                  <button onClick={this.handleCreateItem} className="btn btn-primary mb-2">Add</button>
-                </div>
-              </div>
-              <div className="table-responsive" style={{minHeight: 200 + 'px'}}>
-                <table className="table table-hover table-sm table-bordered">
-                  <tbody>
-                    {arrayToSort.map(item => <ShoppingListItem key={item.propKey} propKey={item.propKey} shoppingListItemId={item.shoppingListItemId}
-                                                               shoppingListItemValue={item.shoppingListItemValue} shoppingListItemChecked={item.shoppingListItemChecked}
-                                                               categoryId={item.categoryId}
-                                                               shoppingListId={this.props.shoppingListId}/>)}
-                  </tbody>
-                </table>
-              </div>
-              <hr/>
-              {recipes.length > 0 &&
-               <div>
-                 <h5>Recipes added to this list:</h5>
-                 <ul>
-                   {recipes.map(({recipeId, recipeName}) => <li key={recipeId}>{recipeName}</li>)}
-                 </ul>
-                 <hr/>
-               </div>
-              }
-              <div className="row"><div className="shopping-list-footer">
-                                     {this.props.isLoggedIn && <button className="btn btn-info" onClick={this.handleCreateNewList}>Create new list</button>}
-                                     <button className="btn btn-warning" onClick={this.handleDeleteSelectedItems}>Delete selected items</button>
-                                   </div></div>
-            </div>
-        );
-    }
-};
-
-const shoppingListMapStateToProps = state => {
-    const shoppingList = state.shoppingListItems.find(({shoppingListId}) => shoppingListId === state.currentShoppingListId);
-    let shoppingListItems = [];
-    if (shoppingList) {
-        shoppingListItems = shoppingList.shoppingListItems;
-    }
-    return {
-        shoppingListItems,
-        categories: state.categories,
-        isLoggedIn: state.isLoggedIn,
-        shoppingListRecipes: state.currentShoppingListRecipes
     };
+
+    let arrayToSort = currentShoppingListItems ? currentShoppingListItems.map(item => Object.assign({}, item)) : [];
+    arrayToSort.sort(sortShoppingListCompare);
+    let recipes = currentShoppingListRecipes.map(item => Object.assign({}, item));
+    recipes.sort((a, b) => a.recipeName.localeCompare(b.recipeName));
+
+    return (
+        <div>
+          <CurrentShoppingListNameContext.Provider value={{currentShoppingListName, setCurrentShoppingListName}}>
+            <ShoppingListName />
+          </CurrentShoppingListNameContext.Provider>
+          <div className="form-group row">
+            <div className="col-sm-8">
+              <input className="form-control" id="shopping-list-item" placeholder="Add item..."
+                     name="createItemInput"
+                     onChange={e => setCreateItemInput(e.target.value)}
+                     onKeyPress={e => checkForEnterKey(e, handleCreateItem)}
+                     value={createItemInput} />
+            </div>
+            <div className="col-sm-4">
+              <button onClick={handleCreateItem} className="btn btn-primary mb-2">Add</button>
+            </div>
+          </div>
+          <CategoryListContext.Provider value={categoryList}>
+            <div className="table-responsive" style={{minHeight: 200 + 'px'}}>
+              <table className="table table-hover table-sm table-bordered">
+                <tbody>
+                  {arrayToSort.map(item => <ShoppingListItem key={item.propKey} propKey={item.propKey} item={item} shoppingListId={currentShoppingListId}/>)}
+                </tbody>
+              </table>
+            </div>
+          </CategoryListContext.Provider>
+          <hr/>
+          {recipes.length > 0 &&
+           <div>
+             <h5>Recipes added to this list:</h5>
+             <ul>
+               {recipes.map(({recipeId, recipeName}) => <li key={recipeId}>{recipeName}</li>)}
+             </ul>
+             <hr/>
+           </div>
+          }
+          <div className="row"><div className="shopping-list-footer">
+                       {isLoggedIn && <button className="btn btn-info" onClick={handleCreateNewList}>Create new list</button>}
+                       <button className="btn btn-warning" onClick={handleDeleteSelectedItems}>Delete selected items</button>
+                     </div></div>
+        </div>
+    );
 };
 
-const ShoppingList = connect(shoppingListMapStateToProps, { createShoppingListItem, createShoppingList, deleteShoppingListSelectedItems })(ShoppingListComponent);
-
-export {ShoppingList, ShoppingListComponent};
+export {ShoppingList, CurrentShoppingListNameContext, CategoryListContext};

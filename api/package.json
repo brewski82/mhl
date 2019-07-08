@@ -1,6 +1,6 @@
 {
   "name": "mhl-api",
-  "version": "1.0.20",
+  "version": "1.0.30",
   "description": "REST API for My Honey's List",
   "main": "server.js",
   "scripts": {

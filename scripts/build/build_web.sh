@@ -48,10 +48,10 @@ source "$file_dir/../utils.sh"
 container_runtime="${MHL_CONTAINER_RUNTIME:-docker}"
 
 function do_build() {
-    log_message "Build static web app."
+    log_message "Build static web app for $src_dir."
     pushd "$src_dir" > /dev/null
     $container_runtime run -it --rm --name mhl-node-build \
-                       -v "$PWD":/usr/src/app \
+                       -v "$PWD":/usr/src/app:z \
                        -w /usr/src/app \
                        -e REACT_APP_API="prod" \
                        node:11 npm run build

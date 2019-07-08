@@ -50,21 +50,29 @@ const apiDev = {
         return new Promise((resolve, reject) => {
             console.log("Sleeping for fake api call...");
             setTimeout(function(){
-                resolve([]);
+                resolve([{recipeId: 1, recipeName: "Test recipe name"}]);
             }, 1500);
         });
     },
-    createRecipeItem: (recipeId, recipeItemValue) => {
-        console.log("Create recipe item...");
+    getRecipe: (recipeId) => {
         return new Promise((resolve, reject) => {
             console.log("Sleeping for fake api call...");
             setTimeout(function(){
-                resolve({recipeItemId: ++id});
+                resolve({recipeId: 1, recipeName: "Test recipe name", recipeDescription: "", recipeSource: ""});
+            }, 500);
+        });
+    },
+    createRecipeItem: (recipeId, recipeItemValue) => {
+        console.log("Create recipe item " + ++id);
+        return new Promise((resolve, reject) => {
+            console.log("Sleeping for fake api call...");
+            setTimeout(function(){
+                resolve({recipeItemId: id});
             }, 1500);
         });
     },
     deleteRecipeItem: (recipeId, recipeItemId) => {
-        console.log("Delete recipe item...");
+        console.log("Delete recipe item " + recipeItemId);
         return new Promise((resolve, reject) => {
             console.log("Sleeping for fake api call...");
             setTimeout(function(){
@@ -78,6 +86,15 @@ const apiDev = {
             console.log("Sleeping for fake api call...");
             setTimeout(function(){
                 resolve({itemUpdated: true});
+            }, 1500);
+        });
+    },
+    getRecipeItems: (recipeId) => {
+        console.log("Update recipe item...");
+        return new Promise((resolve, reject) => {
+            console.log("Sleeping for fake api call...");
+            setTimeout(function(){
+                resolve([{recipeItemId: 1, recipeItemValue: "Cheese"}, {recipeItemId: 2, recipeItemValue: "Baking Soda"}]);
             }, 1500);
         });
     },
@@ -155,7 +172,7 @@ const apiDev = {
         return new Promise((resolve, reject) => {
             console.log("Sleeping for fake api call...");
             setTimeout(function(){
-                resolve({isLoggedIn: false});
+                resolve({isLoggedIn: true});
             }, 1500);
         });
     },
@@ -216,6 +233,15 @@ const apiDev = {
             }, 3500);
         });
     },
+    getShoppingList: async (shoppingListId) => {
+        console.log('Fetching shopping list...');
+        return new Promise((resolve, reject) => {
+            console.log("Sleeping for fake api call...");
+            setTimeout(function(){
+                resolve({shoppingListId: 1, shoppingListName: "sl name 1"});
+            }, 1500);
+        });
+    },
     getShoppingLists: async () => {
         console.log('Fetching shopping lists...');
         return new Promise((resolve, reject) => {
@@ -249,6 +275,15 @@ const apiDev = {
             setTimeout(function(){
                 resolve({shoppingListUpdated: true});
             }, 2500);
+        });
+    },
+    createLogin: async () => {
+        console.log('createLogin...');
+        return new Promise((resolve, reject) => {
+            console.log("Sleeping for fake api call...");
+            setTimeout(function(){
+                resolve({isLoggedIn: true});
+            }, 10);
         });
     }
 };

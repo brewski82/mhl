@@ -55,7 +55,6 @@ source "$script_dir/utils.sh"
 skip_setup="${1:-N}"
 container_runtime="${MHL_CONTAINER_RUNTIME:-docker}"
 
-
 if [ "$skip_setup" != "Y" ]; then
     pushd "$file_dir" > /dev/null
     ./launch_int_env.sh --build-api f --build-web f --container-runtime $container_runtime

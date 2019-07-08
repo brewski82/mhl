@@ -26,26 +26,23 @@
 
 */
 
-import React from 'react';
-import { loadEmails, createAccountEmail, doLogout, deactivateAccount } from './redux/actions';
-import { connect } from "react-redux";
-import { handleInputChange, checkForEnterKey } from './Utils';
+import React, { useState, useEffect, useContext } from 'react';
+import { loadEmails, createAccountEmail, doLogout, deactivateAccount } from './api/actions';
+import { checkForEnterKey } from './Utils';
+import {IsLoggedInContext} from './App';
 
-class AccountComponent extends React.Component {
+function Account() {
+    const [{addEmailInput, isValid, addedEmail}, setState] = useState({addEmailInput: '', isValid: true, addedEmail: ''});
+    const [emails, setEmails] = useState([]);
+    const isLoggedIn = useContext(IsLoggedInContext);
 
-    constructor(props) {
-        super(props);
-        this.state = { addEmailInput: "", isValid: true, addedEmail: ""};
-        this.handleInputChange = handleInputChange.bind(this);
-    }
-
-    handleAddEmail = () => {
-        if (this.state.addEmailInput && this.state.addEmailInput.trim().length > 0) {
-            if (!/^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i.test(this.state.addEmailInput)) {
-                this.setState({isValid: false});
+    function handleAddEmail() {
+        if (addEmailInput && addEmailInput.trim().length > 0) {
+            if (!/^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i.test(addEmailInput)) {
+                setState({isValid: false, addEmailInput, addedEmail});
             } else {
-                this.props.createAccountEmail(this.state.addEmailInput.trim());
-                this.setState((state, props) => ({
+                createAccountEmail(addEmailInput.trim());
+                setState((state) => ({
                     isValid: true,
                     addedEmail: "Added email " + state.addEmailInput + " to your account. Please check you mail to verify your new email address.",
                     addEmailInput: ""
@@ -54,70 +51,70 @@ class AccountComponent extends React.Component {
         }
     };
 
-    handleDeleteAccount = () => {
+    function handleDeleteAccount() {
         const answer = window.confirm('Are you sure you want to delete your account? You cannot undo this action!');
         if (answer) {
-            this.props.deactivateAccount();
+            deactivateAccount();
         }
     }
 
-    componentDidMount() {
-        this.props.loadEmails();
-    }
+    useEffect(() => {
+        (async () => {
+            const e = await loadEmails();
+            setEmails(e);
+        })();
+    }, []);
 
-    render() {
-        if (!this.props.isLoggedIn) {
-            return (<div><p>Please login to manage your account.</p></div>);
-        }
-        let className = this.state.isValid ? "form-control" : "form-control is-invalid";
-        return (
-            <div>
-              <div className="row">
-                <h1>Manage Account</h1>
-              </div>
-              <div className="row">
-                <h3>Emails</h3>
-                <p>You can link your account to more than one email. Fill out and submit the following form to add additional emails to your account. You will need to verify any additional email addresses.</p>
-                <h5>Current emails:</h5>
-                <ul>
-                  {this.props.emails && this.props.emails.map(({email}, index) => <li key={index}>{email}</li>)}
-                </ul>
-              </div>
-              <div className="form-group row">
-                <div className="col-sm-10">
-                  <input className={className} id="email" placeholder="Add email..."
-                         name="addEmailInput"
-                         onChange={this.handleInputChange}
-                         onKeyPress={e => checkForEnterKey(e, this.handleAddEmail)}
-                         value={this.state.addEmailInput}
-                         type="email"/>
-                </div>
-                <button onClick={this.handleAddEmail} className="btn btn-primary mb-2">Add</button>
-              </div>
-              {this.state.addedEmail && <div className="alert alert-primary" role="alert">{this.state.addedEmail}</div>}
-              <div className="row">
-                <h3>Log Out</h3>
-              </div>
-              <div className="row">
-                <p>Click the following button to log out of My Honey's List on this device.</p>
-              </div>
-              <div className="row">
-                <button className="btn btn-dark mb-2" onClick={this.props.doLogout}>Log Out</button>
-              </div>
-              <div className="row">
-                <h3>Delete Account</h3>
-              </div>
-              <div className="row">
-                <p>Click the button below to delete your account. This action cannot be undone! You will forever loose all your shopping lists!</p>
-              </div>
-              <div className="row">
-                <button className="btn btn-danger mb-2" onClick={this.handleDeleteAccount}>Delete Account</button>
-              </div>
+
+    if (!isLoggedIn) {
+        return (<div><p>Please login to manage your account.</p></div>);
+    }
+    let className = isValid ? "form-control" : "form-control is-invalid";
+    return (
+        <div>
+          <div className="row">
+            <h1>Manage Account</h1>
+          </div>
+          <div className="row">
+            <h3>Emails</h3>
+            <p>You can link your account to more than one email. Fill out and submit the following form to add additional emails to your account. You will need to verify any additional email addresses.</p>
+            <h5>Current emails:</h5>
+            <ul>
+              {emails && emails.map(({email}, index) => <li key={index}>{email}</li>)}
+            </ul>
+          </div>
+          <div className="form-group row">
+            <div className="col-sm-10">
+              <input className={className} id="email" placeholder="Add email..."
+                     name="addEmailInput"
+                     onChange={e => setState({isValid, addedEmail, addEmailInput: e.target.value})}
+                     onKeyPress={e => checkForEnterKey(e, handleAddEmail)}
+                     value={addEmailInput}
+                     type="email"/>
             </div>
-        );
-    }
+            <button id="add-email-input-button" onClick={handleAddEmail} className="btn btn-primary mb-2">Add</button>
+          </div>
+          {addedEmail && <div className="alert alert-primary" role="alert">{addedEmail}</div>}
+          <div className="row">
+            <h3>Log Out</h3>
+          </div>
+          <div className="row">
+            <p>Click the following button to log out of My Honey's List on this device.</p>
+          </div>
+          <div className="row">
+            <button className="btn btn-dark mb-2" onClick={doLogout}>Log Out</button>
+          </div>
+          <div className="row">
+            <h3>Delete Account</h3>
+          </div>
+          <div className="row">
+            <p>Click the button below to delete your account. This action cannot be undone! You will forever loose all your shopping lists!</p>
+          </div>
+          <div className="row">
+            <button className="btn btn-danger mb-2" onClick={handleDeleteAccount}>Delete Account</button>
+          </div>
+        </div>
+    );
 };
 
-const Account = connect((state) => ({isLoggedIn: state.isLoggedIn, emails: state.emails}), {loadEmails, createAccountEmail, doLogout, deactivateAccount})(AccountComponent);
-
-export {Account, AccountComponent};
+export {Account};

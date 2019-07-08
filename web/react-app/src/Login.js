@@ -26,33 +26,27 @@
 
 */
 
-import React from 'react';
-import { handleInputChange, checkForEnterKey } from './Utils';
-import { createLogin } from './redux/actions';
-import { connect } from "react-redux";
+import React, { useState } from 'react';
+import { checkForEnterKey } from './Utils';
+import { createLogin } from './api/actions';
 
-class LoginComponent extends React.Component {
-    constructor(props) {
-        super(props);
-        this.state = {showInput: true, isValid: true, email: ""};
-        this.handleInputChange = handleInputChange.bind(this);
-    }
+function Login() {
+    const [{showInput, isValid, email}, setState] = useState({showInput: true, isValid: true, email: ''});
 
-    handleSubmit = async () => {
-        if (!/^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i.test(this.state.email)) {
-            this.setState({isValid: false});
+    async function handleSubmit() {
+        if (!/^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i.test(email)) {
+            setState({showInput, email, isValid: false});
         } else {
-            await this.props.createLogin(this.state.email);
-            this.setState({isValid: true});
-            this.setState({showInput: false});
+            await createLogin(email);
+            setState({isValid: true, showInput: false, email});
         }
     }
 
-    render() {
-        let className = this.state.isValid ? "form-control" : "form-control is-invalid";
-        return (
+    const className = isValid ? "form-control" : "form-control is-invalid";
+
+    return (
             <div>
-              {this.state.showInput ? (
+              {showInput ? (
                   <div className="form-group row">
                     <div className="col-sm-10">
                       Enter a valid email address to receive a message with a login link.
@@ -61,26 +55,23 @@ class LoginComponent extends React.Component {
                     <div className="col-sm-10">
                       <input className={className} id="enter-email" placeholder="Enter email..."
                              name="email"
-                             onChange={this.handleInputChange}
-                             onKeyPress={e => checkForEnterKey(e, this.handleSubmit)}
-                             value={this.state.email}
+                             onChange={e => setState({isValid, showInput, email: e.target.value})}
+                             onKeyPress={e => checkForEnterKey(e, handleSubmit)}
+                             value={email}
                              type="email" />
                     </div>
-                    <button onClick={this.handleSubmit} className="btn btn-primary mb-2">Submit</button>
-                    {!this.state.isValid && (<div className="col-sm-10">Invalid email!</div>)}
+                    <button onClick={handleSubmit} className="btn btn-primary mb-2">Submit</button>
+                    {!isValid && (<div className="col-sm-10">Invalid email!</div>)}
                   </div>
 
               ) : (
                   <div>
-                    Please check your email for {this.state.email} and open the link in this browser!
+                    Please check your email for {email} and open the link in this browser!
                   </div>
               )}
 
             </div>
-        );
-    }
+    );
 }
-
-const Login = connect(null, {createLogin})(LoginComponent);
 
 export { Login };

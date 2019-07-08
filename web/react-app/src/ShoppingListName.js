@@ -26,107 +26,69 @@
 
 */
 
-import React from 'react';
-import { connect } from "react-redux";
-import { handleInputChange, checkForEnterKey } from './Utils';
-import { updateShoppingListName, generateDefaultShoppingListName } from './redux/actions';
+import React, { useState, useEffect, useContext } from 'react';
+import { checkForEnterKey } from './Utils';
+import { updateShoppingListName, generateDefaultShoppingListName, getShoppingList } from './api/actions';
+import { IsLoggedInContext, CurrentShoppingListIdContext } from './App';
+import { CurrentShoppingListNameContext } from './ShoppingList';
 
 /**
- * Handles displaying and updating shopping list names. Subscribes to
- * the array of {shoppingListId, shoppingListName} objects for the
- * user. Requires passing a shopping list id via the props. For
- * unauthenticated users, use zero as the id. The id is allowed to
- * update after the user logs in or creates an account.
+ * Handles displaying and updating shopping list names.
  */
-class ShoppingListNameComponent extends React.Component {
-    constructor(props) {
-        super(props);
-        if (!('shoppingListId' in props) || isNaN(props.shoppingListId)) {
-            throw new Error('shoppingListId is a required prop.');
-        }
-        let shoppingListName = this.findShoppingListName(props);
-        if (!shoppingListName) {
-            shoppingListName = generateDefaultShoppingListName();
-        }
-        this.state = { showShoppingListNameInput: false, shoppingListName};
-        this.handleInputChange = handleInputChange.bind(this);
-    }
+function ShoppingListName() {
+    const isLoggedIn = useContext(IsLoggedInContext);
+    const { currentShoppingListId } = useContext(CurrentShoppingListIdContext);
+    const { currentShoppingListName, setCurrentShoppingListName } = useContext(CurrentShoppingListNameContext);
+    const [showShoppingListNameInput, setShowShoppingListNameInput] = useState(false);
 
-    /**
-     * Returns the shopping list name from the array of
-     * {shoppingListId, shoppingListName} objects. Returns null if not
-     * found.
-     */
-    findShoppingListName(props) {
-        const shoppingList = props.shoppingLists.find(({shoppingListId}) => shoppingListId === props.shoppingListId);
-        if (!shoppingList) {
-            return null;
-        }
-        return shoppingList.shoppingListName;
-    }
-
-    /**
-     * props.shoppingListId can change in this component in the event
-     * an non-logged-in user starts creating a list, then decides to
-     * log in. In this case, the shopping list id will start with zero
-     * but will be assigned a valid id after logging in. This method
-     * checks for that condition and sets the state if necessary,
-     * causing a render.
-     */
-    componentDidUpdate(prevProps) {
-        if (this.props.shoppingListId !== prevProps.shoppingListId) {
-            const shoppingListName = this.findShoppingListName(this.props);
-            this.setState({shoppingListName});
-            return;
-        }
-        const prevShoppingListName = this.findShoppingListName(prevProps);
-        const shoppingListName = this.findShoppingListName(this.props);
-        if (prevShoppingListName !== shoppingListName) {
-            this.setState({shoppingListName});
-        }
-    }
+    useEffect(() => {
+        (async () => {
+            console.log('in ShoppingListName effect');
+            if (isLoggedIn) {
+                if (currentShoppingListId !== 0) {
+                    console.log('sln');
+                    const shoppingList = await getShoppingList(currentShoppingListId);
+                    setCurrentShoppingListName(shoppingList.shoppingListName);
+                }
+            }
+        })();
+    }, [isLoggedIn, currentShoppingListId]);
 
     /**
      * Makes the call to the backend to persist the name change.
      */
-    updateShoppingListName = () => {
-        const {shoppingListId} = this.props;
-        let {shoppingListName} = this.state;
+    const persistShoppingListName = () => {
         // Set to a default name if the user blanked the input.
-        if (shoppingListName.length === 0) {
-            shoppingListName = generateDefaultShoppingListName();
+        if (currentShoppingListName.length === 0) {
+            setCurrentShoppingListName(generateDefaultShoppingListName());
         }
-        shoppingListName = shoppingListName.trim();
-        this.props.updateShoppingListName(shoppingListId, shoppingListName, this.props.isLoggedIn);
-        this.setState({showShoppingListNameInput: false, shoppingListName});
-    }
+        setCurrentShoppingListName(currentShoppingListName.trim());
+        updateShoppingListName(currentShoppingListId, currentShoppingListName);
+        setShowShoppingListNameInput(false);
+    };
 
-    showShoppingListNameInput = () => {
-        this.setState({showShoppingListNameInput: true});
-    }
+    const showShoppingListNameInputBox = () => {
+        setShowShoppingListNameInput(true);
+    };
 
-    render() {
-        return (
-            <div>
-              {this.state.showShoppingListNameInput ? (
-                  <input className="form-control" id="shopping-list-name-input"
-                         name="shoppingListName"
-                         onChange={this.handleInputChange}
-                         onKeyPress={e => checkForEnterKey(e, this.updateShoppingListName)}
-                         onBlur={this.updateShoppingListName}
-                         value={this.state.shoppingListName} />
+    return (
+        <div>
+          {showShoppingListNameInput ? (
+              <input className="form-control" id="shopping-list-name-input"
+                     name="shoppingListName"
+                     onChange={e => setCurrentShoppingListName(e.target.value)}
+                     onKeyPress={e => checkForEnterKey(e, persistShoppingListName)}
+                     onBlur={persistShoppingListName}
+                     value={currentShoppingListName} />
 
-              ) : (
-                  <div className="row">
-                    <h3 onClick={this.showShoppingListNameInput}>{this.state.shoppingListName}</h3>
-                    <button type="button" className="btn btn-link" onClick={this.showShoppingListNameInput}>Edit Name</button>
-                  </div>
-              )}
-            </div>
-        );
-    }
+          ) : (
+              <div className="row">
+                <h3 onClick={showShoppingListNameInputBox}>{currentShoppingListName}</h3>
+                <button type="button" className="btn btn-link" onClick={showShoppingListNameInputBox}>Edit Name</button>
+              </div>
+          )}
+        </div>
+    );
 }
 
-const ShoppingListName = connect(state => ({shoppingLists: state.shoppingLists, isLoggedIn: state.isLoggedIn}), {updateShoppingListName})(ShoppingListNameComponent);
-
-export {ShoppingListName, ShoppingListNameComponent};
+export {ShoppingListName};

@@ -26,16 +26,10 @@
 
 */
 
+import { render } from '@testing-library/react';
 import React from 'react';
-import ReactDOM from 'react-dom';
-import { Provider } from "react-redux";
-import configureMockStore from 'redux-mock-store';
 import { ShoppingListContainer } from '../ShoppingListContainer';
-const mockStore = configureMockStore();
-const store = mockStore({});
 
 test('Renders', () => {
-    const div = document.createElement('div');
-    ReactDOM.render(<Provider store={store}><table><tbody><ShoppingListContainer shoppingLists={[]} isLoggedIn={true} /></tbody></table></Provider>, div);
-    ReactDOM.unmountComponentAtNode(div);
+    render(<ShoppingListContainer shoppingLists={[]} isLoggedIn={true} />);
 });

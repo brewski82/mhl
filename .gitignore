@@ -2,3 +2,4 @@ node_modules
 scripts/build/docker/web/src
 scripts/build/docker/api/src
 web/react-app/build
+.log

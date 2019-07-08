@@ -26,10 +26,11 @@
 
 */
 
-import React from 'react';
-import { handleInputChange, checkForEnterKey } from './Utils';
-import { connect } from "react-redux";
-import { updateShoppingListItem } from './redux/actions';
+import React, { useState, useContext } from 'react';
+import { checkForEnterKey } from './Utils';
+import { updateShoppingListItem } from './api/actions';
+import {IsLoggedInContext, CurrentShoppingListItemsDispatchContext} from './App';
+import {CategoryListContext} from './ShoppingList';
 
 /**
  * Function for displaying the category drop down. The second argument
@@ -39,7 +40,10 @@ import { updateShoppingListItem } from './redux/actions';
  * selected. The third argument is a callback that fires when the user
  * changes the selected drop down item.
  */
-function categoryDropdown(categoryId, categories, callback) {
+function CategoryDropdown(props) {
+    const categoryId = props.categoryId;
+    const callback = props.callback;
+    const categories = useContext(CategoryListContext);
     return <div className="input-group mb-3">
              {categories && categories.length > 0 ?
              <select className="custom-select" id="inputGroupSelect01" value={categoryId ? categoryId : ''} onChange={callback}>
@@ -57,109 +61,106 @@ function categoryDropdown(categoryId, categories, callback) {
  * created with an "item" property which contains keys of shoppingListItemValue,
  * shoppingListItemChecked, and categoryId.
  */
-class ShoppingListItemComponent extends React.Component {
-    constructor(props) {
-        super(props);
-        this.state = {showInput: false, shoppingListItemValue: this.props.item.shoppingListItemValue, shoppingListItemChecked: this.props.item.shoppingListItemChecked};
-        this.handleInputChange = handleInputChange.bind(this);
-    }
+function ShoppingListItem(props) {
+    const [{showInput, shoppingListItemChecked}, setState] = useState({showInput: false, shoppingListItemChecked: props.item.shoppingListItemChecked || false});
+    const [shoppingListItemValue, setShoppingListItemValue] = useState(props.item.shoppingListItemValue);
+    const isLoggedIn = useContext(IsLoggedInContext);
+    const currentShoppingListItemsDispatch  = useContext(CurrentShoppingListItemsDispatchContext);
 
     /**
      * Toggles the checkbox. When checked, the item is considered
      * complete and is candidate for deletion.
      */
-    toggleChecked = () => {
-        // Since toggling the checkbox relies on the previous state,
-        // pass a function to setState to correctly get the previous
-        // state. See
-        // https://reactjs.org/docs/state-and-lifecycle.html for more
-        // info.
-        this.setState((state, props) => {
-            let newValue = !state.shoppingListItemChecked;
-            props.updateShoppingListItem(
+    const toggleChecked = () => {
+        setState((prevState) => {
+            let newValue = !prevState.shoppingListItemChecked;
+            updateShoppingListItem(
                 {
                     shoppingListId: props.shoppingListId,
                     shoppingListItemId: props.item.shoppingListItemId,
-                    shoppingListItemValue: state.shoppingListItemValue,
+                    shoppingListItemValue: shoppingListItemValue,
                     shoppingListItemChecked: newValue,
                     categoryId: props.item.categoryId,
                     propKey: props.item.propKey
                 },
-                this.props.isLoggedIn
+                isLoggedIn,
+                currentShoppingListItemsDispatch
             );
-            return {shoppingListItemChecked: newValue};
+            return {...prevState, shoppingListItemChecked: newValue};
         });
-    }
+    };
 
     /**
      * Changes the item's cateogry.
      */
-    updateCategory = (categoryId) => {
-        this.props.updateShoppingListItem(
+    const updateCategory = (categoryId) => {
+        updateShoppingListItem(
             {
-                shoppingListId: this.props.shoppingListId,
-                shoppingListItemId: this.props.item.shoppingListItemId,
-                shoppingListItemValue: this.state.shoppingListItemValue,
-                shoppingListItemChecked: this.state.shoppingListItemChecked,
+                shoppingListId: props.shoppingListId,
+                shoppingListItemId: props.item.shoppingListItemId,
+                shoppingListItemValue: shoppingListItemValue,
+                shoppingListItemChecked: shoppingListItemChecked,
                 categoryId: parseInt(categoryId),
-                propKey: this.props.item.propKey
+                propKey: props.item.propKey
             },
-            this.props.isLoggedIn
+            isLoggedIn,
+            currentShoppingListItemsDispatch
         );
-    }
+    };
 
     /**
      * Changes the item's shoppingListItemValue, i.e. the text of the item.
      */
-    updateShoppingListItemValue = () => {
-        if (this.state.shoppingListItemValue.length > 0) {
-            this.props.updateShoppingListItem(
+    const updateShoppingListItemValue = () => {
+        if (shoppingListItemValue.length > 0) {
+            updateShoppingListItem(
                 {
-                    shoppingListId: this.props.shoppingListId,
-                    shoppingListItemId: this.props.item.shoppingListItemId,
-                    shoppingListItemValue: this.state.shoppingListItemValue,
-                    shoppingListItemChecked: this.state.shoppingListItemChecked,
-                    categoryId: this.props.item.categoryId,
-                    propKey: this.props.item.propKey
+                    shoppingListId: props.shoppingListId,
+                    shoppingListItemId: props.item.shoppingListItemId,
+                    shoppingListItemValue: shoppingListItemValue,
+                    shoppingListItemChecked: shoppingListItemChecked,
+                    categoryId: props.item.categoryId,
+                    propKey: props.item.propKey
                 },
-                this.props.isLoggedIn
+                isLoggedIn,
+                currentShoppingListItemsDispatch
             );
         } else {
             // If the user deleted the item's text, revert to the
             // original item as we do not want to allow empty text
             // items.
-            this.setState({shoppingListItemValue: this.props.item.shoppingListItemValue});
+            setState((prevState) => ({...prevState, shoppingListItemValue: props.item.shoppingListItemValue}));
         }
-        this.setState({showInput: false});
-    }
+        setState((prevState) => ({...prevState, showInput: false}));
+    };
 
-    render() {
-        return (
-            <tr className={this.props.shoppingListItemToHighlight === this.props.propKey ? "item-highlight" : ""}>
-              <td className="shopping-list-item-checkbox align-middle text-center">
-                <input type="checkbox" name="shoppingListItemChecked" onChange={this.toggleChecked} checked={this.state.shoppingListItemChecked} />
-              </td>
-              <td onClick={e => this.setState({showInput: true})}>
-                {this.state.showInput ? (
-                    <input name="shoppingListItemValue" onChange={this.handleInputChange} value={this.state.shoppingListItemValue}
-                           onKeyPress={e => checkForEnterKey(e, this.updateShoppingListItemValue)}
-                           onBlur={this.updateShoppingListItemValue}/>
-                ) : (
-                    <div>
-                      {this.props.item.shoppingListItemChecked ? (<del>{this.props.item.shoppingListItemValue}</del>) : this.props.item.shoppingListItemValue}
-                    </div>
-                )}
-              </td>
-              <td className="shopping-list-item-category">{categoryDropdown(this.props.item.categoryId, this.props.categories, e => this.updateCategory(e.target.value))}</td>
-            </tr>
-        );
-    }
+    return (
+        <tr className={props.shoppingListItemToHighlight === props.propKey ? "item-highlight" : ""}>
+          <td className="shopping-list-item-checkbox align-middle text-center">
+            <input type="checkbox"
+                   name="shoppingListItemChecked"
+                   onChange={toggleChecked}
+                   checked={shoppingListItemChecked}
+                   value={shoppingListItemChecked}/>
+          </td>
+          <td onClick={() => setState((prevState) => ({...prevState, showInput: true}))}>
+            {showInput ? (
+                <input name="shoppingListItemValue"
+                       onChange={e => setShoppingListItemValue(e.target.value)}
+                       value={shoppingListItemValue}
+                       onKeyPress={e => checkForEnterKey(e, updateShoppingListItemValue)}
+                       onBlur={updateShoppingListItemValue}/>
+            ) : (
+                <div>
+                  {props.item.shoppingListItemChecked ? (<del>{props.item.shoppingListItemValue}</del>) : props.item.shoppingListItemValue}
+                </div>
+            )}
+          </td>
+          <td className="shopping-list-item-category">
+            <CategoryDropdown categoryId={props.item.categoryId} callback={e => updateCategory(e.target.value)}/>
+          </td>
+        </tr>
+    );
 }
 
-const ShoppingListItem = connect((state, ownProps) => {
-    const shoppingList = state.shoppingListItems.find(({shoppingListId}) => shoppingListId === ownProps.shoppingListId);
-    const shoppingListItem = shoppingList.shoppingListItems.find(({propKey}) => propKey === ownProps.propKey);
-    return {item: shoppingListItem, categories: state.categories, isLoggedIn: state.isLoggedIn, shoppingListItemToHighlight: state.shoppingListItemToHighlight};
-}, {updateShoppingListItem})(ShoppingListItemComponent);
-
-export  {ShoppingListItem, ShoppingListItemComponent}
+export  {ShoppingListItem}
