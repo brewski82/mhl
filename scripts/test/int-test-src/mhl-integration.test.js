@@ -7,6 +7,8 @@ const superagent = require('superagent');
 const agent = superagent.agent();
 const { Client } = require('pg');
 const email = "test@example.com";
+const webPort = process.env.MHL_WEB_PORT;
+const apiUrl = 'http://localhost:' + webPort + '/api/';
 
 async function query(text, params, callback) {
     const client = new Client(
@@ -24,19 +26,19 @@ async function query(text, params, callback) {
 }
 
 function fetchGet(url) {
-    return agent.get('http://localhost/api/' + url);
+    return agent.get(apiUrl + url);
 }
 
 function fetchDel(url, body) {
-    return agent.delete('http://localhost/api/' + url).send(body);
+    return agent.delete(apiUrl + url).send(body);
 }
 
 function fetchPost(url, body) {
-    return agent.post('http://localhost/api/' + url).send(body);
+    return agent.post(apiUrl + url).send(body);
 }
 
 function fetchPut(url, body) {
-    return agent.put('http://localhost/api/' + url).send(body);
+    return agent.put(apiUrl + url).send(body);
 }
 
 test('/account/emails post requires authentication', async () => {

@@ -31,7 +31,7 @@
 #
 # launch_int_env.sh
 #
-# Launches docker containers to setup the environment for int testing.
+# Launches containers to setup the environment for int testing.
 #
 ################################################################################
 
@@ -47,9 +47,11 @@ source "$script_dir/utils.sh"
 # Defaults for arguments:
 build_api="t"
 build_web="t"
-db_port=5656
+db_port="${MHL_DB_PORT:-5656}"
 postgres_image="postgres:11"
 api_port=8888
+web_port="${MHL_WEB_PORT:-8080}"
+container_runtime="${MHL_CONTAINER_RUNTIME:-docker}"
 
 positional=()
 while [[ $# -gt 0 ]]
@@ -82,6 +84,16 @@ do
             shift
             shift
             ;;
+        --container-runtime)
+            container_runtime="$2"
+            shift
+            shift
+            ;;
+        --web-port)
+            web_port="$2"
+            shift
+            shift
+            ;;
         *)
             positional+=("$1")
             shift
@@ -98,7 +110,7 @@ if [ "$build_web" == "t" ]; then
     "$script_dir/build/build_web.sh"
 fi
 
-log_message "Get docker tags."
+log_message "Get images tags."
 export MHL_WEB_TAG=$(extract_npm_tag "$base_dir/web/react-app")
 export MHL_API_TAG=$(extract_npm_tag "$base_dir/api")
 export MHL_API_CONFIG="$file_dir/config/default.json"
@@ -106,7 +118,9 @@ export MHL_WEB_CONFIG="$file_dir/config/default.conf"
 export MHL_DB_TAG="$postgres_image"
 export MHL_DB_PORT="$db_port"
 export MHL_API_PORT="$api_port"
-log_message "Env variables for docker compose file:"
+export MHL_CONTAINER_RUNTIME="$container_runtime"
+export MHL_WEB_PORT="$web_port"
+log_message "Env variables for compose file:"
 log_message "MHL_API_TAG = $MHL_API_TAG"
 log_message "MHL_WEB_TAG = $MHL_WEB_TAG"
 log_message "MHL_API_CONFIG = $MHL_API_CONFIG"
@@ -114,9 +128,16 @@ log_message "MHL_WEB_CONFIG = $MHL_WEB_CONFIG"
 log_message "MHL_DB_TAG = $MHL_DB_TAG"
 log_message "MHL_DB_PORT = $MHL_DB_PORT"
 log_message "MHL_API_PORT = $MHL_API_PORT"
+log_message "MHL_CONTAINER_RUNTIME = $MHL_CONTAINER_RUNTIME"
+log_message "MHL_WEB_PORT = $MHL_WEB_PORT"
+
+compose_command=docker-compose
+if [ "$MHL_CONTAINER_RUNTIME" == "podman" ]; then
+    compose_command=podman-compose
+fi
 
 log_message "Launch containers."
-docker-compose --file "$file_dir/docker-compose.yml" --project-name "mhl" up --detach
+$compose_command --file "$file_dir/docker-compose.yml" --project-name "mhl" up --detach
 
 log_message "Wait for PostgreSQL server."
 

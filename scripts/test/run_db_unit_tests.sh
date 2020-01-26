@@ -33,9 +33,13 @@
 #
 # Uses pghops to run the database unit tests.
 #
-# Arguments
-#  db_port: Defaults to 5656. The db port to launch the PostgreSQL
-#           docker container and run the tests on.
+# Environment variables:
+#
+#  MHL_DB_PORT: Defaults to 5656. The db port to launch the PostgreSQL
+#  docker container and run the tests on.
+#
+#  MHL_CONTAINER_RUNTIME: The type of container runtime to use
+#  (docker, podman, etc.) Defaults to docker.
 #
 ################################################################################
 
@@ -48,12 +52,15 @@ base_dir="$script_dir/.."
 db_dir="$base_dir/db"
 source "$script_dir/utils.sh"
 
-db_port="${1:-5656}"
+MHL_DB_PORT="${MHL_DB_PORT:-5656}"
+MHL_CONTAINER_RUNTIME="${MHL_CONTAINER_RUNTIME:-docker}"
 
-log_message "Run database migration using port $db_port."
-pghops_test --cluster-directory="$db_dir" \
-            --psql-base-args="--port=$db_port --host=localhost --username=postgres --echo-all --no-psqlrc --set=SHOW_CONTEXT=never" \
-            --docker-port=$db_port \
-            --psql-base-migration-args="--port=$db_port --host=localhost --username=postgres --echo-all --no-psqlrc --set ON_ERROR_STOP=1" \
+log_message "Run database migration using port $MHL_DB_PORT and container runtime $MHL_CONTAINER_RUNTIME."
+cd /home/wbruschi/dev/pghops
+python3 -m pghops.main.test --cluster-directory="$db_dir" \
+            --psql-base-args="--port=$MHL_DB_PORT --host=localhost --username=postgres --echo-all --no-psqlrc --set=SHOW_CONTEXT=never" \
+            --container-port="$MHL_DB_PORT" \
+            --container-runtime="$MHL_CONTAINER_RUNTIME" \
+            --psql-base-migration-args="--port=$MHL_DB_PORT --host=localhost --username=postgres --echo-all --no-psqlrc --set ON_ERROR_STOP=1" \
             run
 log_message "DB tests passed!"

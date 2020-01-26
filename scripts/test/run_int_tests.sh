@@ -41,7 +41,7 @@
 #              settings.
 #
 # Env variables:
-#   MHL_DB_PORT: The port the docker PostgreSQL runs on. Defaults to 5656.
+#   MHL_DB_PORT: The port the container PostgreSQL runs on. Defaults to 5656.
 #
 ################################################################################
 
@@ -53,21 +53,22 @@ script_dir="$file_dir/.."
 source "$script_dir/utils.sh"
 
 skip_setup="${1:-N}"
+container_runtime="${MHL_CONTAINER_RUNTIME:-docker}"
 
 
 if [ "$skip_setup" != "Y" ]; then
     pushd "$file_dir" > /dev/null
-    ./launch_int_env.sh --build-api f --build-web f
+    ./launch_int_env.sh --build-api f --build-web f --container-runtime $container_runtime
     popd > /dev/null
 fi
 
 log_message "Start int tests."
 
 pushd "$file_dir/int-test-src" > /dev/null
-MHL_DB_PORT="${MHL_DB_PORT:-5656}" npm run test
+MHL_WEB_PORT="${MHL_WEB_PORT:-8080}" MHL_DB_PORT="${MHL_DB_PORT:-5656}" npm run test
 log_message "INT tests passed!"
-log_message "Shutting down docker containers."
+log_message "Shutting down containers."
 cd ..
-./docker-compose-down.sh
+./docker-compose-down.sh --container-runtime $container_runtime
 popd > /dev/null
 log_message "Done INT tests."

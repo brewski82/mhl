@@ -48,6 +48,8 @@ source "$script_dir/utils.sh"
 db_port=5656
 api_port=8888
 postgres_image="postgres:11"
+web_port="${MHL_WEB_PORT:-8080}"
+container_runtime="${MHL_CONTAINER_RUNTIME:-docker}"
 
 positional=()
 while [[ $# -gt 0 ]]
@@ -62,6 +64,16 @@ do
             ;;
         --postgres_image)
             postgres_image="$2"
+            shift
+            shift
+            ;;
+        --container-runtime)
+            container_runtime="$2"
+            shift
+            shift
+            ;;
+        --web-port)
+            web_port="$2"
             shift
             shift
             ;;
@@ -81,6 +93,8 @@ export MHL_WEB_CONFIG="$file_dir/config/default.conf"
 export MHL_DB_TAG="$postgres_image"
 export MHL_DB_PORT="$db_port"
 export MHL_API_PORT="$api_port"
+export MHL_CONTAINER_RUNTIME="$container_runtime"
+export MHL_WEB_PORT="$web_port"
 log_message "Env variables for docker compose file:"
 log_message "MHL_API_TAG = $MHL_API_TAG"
 log_message "MHL_WEB_TAG = $MHL_WEB_TAG"
@@ -89,6 +103,12 @@ log_message "MHL_WEB_CONFIG = $MHL_WEB_CONFIG"
 log_message "MHL_DB_TAG = $MHL_DB_TAG"
 log_message "MHL_DB_PORT = $MHL_DB_PORT"
 log_message "MHL_API_PORT = $MHL_API_PORT"
+log_message "MHL_CONTAINER_RUNTIME = $MHL_CONTAINER_RUNTIME"
+log_message "MHL_WEB_PORT = $MHL_WEB_PORT"
 
+compose_command=docker-compose
+if [ "$MHL_CONTAINER_RUNTIME" == "podman" ]; then
+    compose_command=podman-compose
+fi
 log_message "Shut down containers."
-docker-compose --file "$file_dir/docker-compose.yml" --project-name "mhl" down
+$compose_command --file "$file_dir/docker-compose.yml" --project-name "mhl" down

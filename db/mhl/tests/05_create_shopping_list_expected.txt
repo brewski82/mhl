@@ -1,13 +1,13 @@
 \set VERBOSITY terse
 -- Test creating multiple shopping lists.
 select create_shopping_list(1, 'one');
- create_shopping_list 
+ create_shopping_list
 ----------------------
                     1
 (1 row)
 
 select create_shopping_list(1, 'two');
- create_shopping_list 
+ create_shopping_list
 ----------------------
                     2
 (1 row)
@@ -20,7 +20,7 @@ ERROR:  null value in column "shopping_list_name" violates not-null constraint
 -- Test with items
 select create_shopping_list(1, 'three'
                                , '[{"item": "butter", "categoryId": 1 }, {"item": "lettuce", "categoryId": 2 }, {"item": "fish", "categoryId": 3 }]'::jsonb);
- create_shopping_list 
+ create_shopping_list
 ----------------------
                     5
 (1 row)
@@ -28,11 +28,11 @@ select create_shopping_list(1, 'three'
 -- Reject if we have a bad category.
 select create_shopping_list(1, 'four'
                                , '[{"item": "butter", "categoryId": 1}, {"item": "lettuce", "categoryId": 2}, {"item": "fish", "categoryId": "Bad Cat"}]'::jsonb);
-ERROR:  invalid input syntax for integer: "Bad Cat"
+ERROR:  invalid input syntax for type bigint: "Bad Cat"
 -- Reject if we have a bad category.
 select create_shopping_list(1, 'four'
                                , '[{"item": "butter", "categoryId": 1}, {"item": "lettuce", "categoryId": 2}, {"item": "fish", "categoryId": ""}]'::jsonb);
-ERROR:  invalid input syntax for integer: ""
+ERROR:  invalid input syntax for type bigint: ""
 -- Reject if we have a bad category.
 select create_shopping_list(1, 'four'
                                , '[{"item": "butter", "categoryId": 1}, {"item": "lettuce", "categoryId": 2}, {"item": "fish", "categoryId": null}]'::jsonb);
@@ -40,7 +40,7 @@ ERROR:  null value in column "category_id" violates not-null constraint
 -- Reject if we have a bad category.
 select create_shopping_list(1, 'four'
                                , '[{"item": "butter", "categoryId": 1}, {"item": "lettuce", "categoryId": 2}, {"item": "fish", "categoryId": " "}]'::jsonb);
-ERROR:  invalid input syntax for integer: " "
+ERROR:  invalid input syntax for type bigint: " "
 -- Reject if we have a bad category.
 select create_shopping_list(1, 'four'
                                , '[{"item": "butter", "categoryId": 1}, {"item": "lettuce", "categoryId": 2}, {"item": "fish", "categoryId": 10000000}]'::jsonb);
@@ -59,16 +59,15 @@ select create_shopping_list(1, 'four'
 ERROR:  null value in column "shopping_list_item_value" violates not-null constraint
 -- Allow lists with the same name.
 select create_shopping_list(1, 'two');
- create_shopping_list 
+ create_shopping_list
 ----------------------
                    14
 (1 row)
 
 select shopping_list_id, category_id, shopping_list_item_value from shopping_list_item order by shopping_list_id, category_id, shopping_list_item_value;
- shopping_list_id | category_id | shopping_list_item_value 
+ shopping_list_id | category_id | shopping_list_item_value
 ------------------+-------------+--------------------------
                 5 |           1 | butter
                 5 |           2 | lettuce
                 5 |           3 | fish
 (3 rows)
-

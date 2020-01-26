@@ -46,9 +46,10 @@ file_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 build_dir="$file_dir/docker/api/src"
 src_dir="$file_dir/../../api"
 source "$file_dir/../utils.sh"
+container_runtime="${MHL_CONTAINER_RUNTIME:-docker}"
 
 function do_build() {
-    log_message "Building api docker image."
+    log_message "Building api image."
     tag=$(extract_npm_tag "$src_dir")
     log_message "Tag = $tag"
     log_message "Copy files in $src_dir to $build_dir ."
@@ -57,12 +58,12 @@ function do_build() {
     cp -r "$src_dir/"* "$build_dir/"
     pushd "$file_dir/docker/api" > /dev/null
     if [ "$(does_tag_exist $tag)" == "Y" ]; then
-        log_message "Halting build as it appears the docker tag $tag already exists."
+        log_message "Halting build as it appears the image tag $tag already exists."
         log_message "Please either delete the tag or adjust the api version in package.json"
         return 2
     fi
     log_message "Building image."
-    docker build -t "$tag" .
+    $container_runtime build -t "$tag" .
     popd > /dev/null
     log_message "Done building $tag."
 }
