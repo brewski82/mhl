@@ -46,6 +46,9 @@ export const NumberOfShoppingListItemsContext = React.createContext();
 function currentShoppingListItemsReducer(state, action) {
     switch (action.type) {
     case 'add':
+        if (state == null) {
+            return [action.shoppingListItem];
+        }
         return [...state, action.shoppingListItem];
     case 'init':
         return action.shoppingListItems;

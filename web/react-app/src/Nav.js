@@ -53,7 +53,7 @@ export function Nav() {
     }, [currentShoppingListId]);
 
     useEffect(() => {
-        setNumberOfShoppingListItems(currentShoppingListItems.length);
+        setNumberOfShoppingListItems(currentShoppingListItems != null ? currentShoppingListItems.length : 0);
     }, [currentShoppingListItems]);
 
     let accountDiv = logIn;

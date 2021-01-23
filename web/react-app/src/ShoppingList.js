@@ -28,7 +28,7 @@
 
 import React, { useState, useContext, useEffect } from 'react';
 import { checkForEnterKey } from './Utils';
-import { createShoppingListItem, generateDefaultShoppingListName, getCategories, createShoppingList, loadCurrentShoppingListOrCreateNew } from './api/actions';
+import { createShoppingListItem, generateDefaultShoppingListName, getCategories, createShoppingList, loadCurrentShoppingListOrCreateNew, getShoppingListItems } from './api/actions';
 import { ShoppingListName } from './ShoppingListName';
 import { ShoppingListItem } from './ShoppingListItem';
 import './ShoppingList.css';
@@ -63,14 +63,16 @@ function ShoppingList(props) {
                 if (currentShoppingListId === 0) {
                     const shoppingList = await loadCurrentShoppingListOrCreateNew();
                     setCurrentShoppingListId(shoppingList.shoppingListId);
-                    setNumberOfShoppingListItems(shoppingList.shoppingListItems.length);
+                    const shoppingListItems = await getShoppingListItems(shoppingList.shoppingListId);
+                    setNumberOfShoppingListItems(shoppingListItems ? shoppingListItems.length : 0);
+                    currentShoppingListItemsDispatch({type: "init", shoppingListItems});
                 }
             }
         })();
     }, [isLoggedIn]);
 
     useEffect(() => {
-        setNumberOfShoppingListItems(currentShoppingListItems.length);
+        setNumberOfShoppingListItems(currentShoppingListItems != null ? currentShoppingListItems.length : 0);
     });
 
     /**
@@ -167,7 +169,7 @@ function ShoppingList(props) {
             <div className="table-responsive" style={{minHeight: 200 + 'px'}}>
               <table className="table table-hover table-sm table-bordered">
                 <tbody>
-                  {arrayToSort.map(item => <ShoppingListItem key={item.propKey} propKey={item.propKey} item={item} shoppingListId={currentShoppingListId}/>)}
+                  {arrayToSort.map((item, index) => <ShoppingListItem key={item.shoppingListItemId || index} propKey={item.shoppingListItemId || index} item={item} shoppingListId={currentShoppingListId}/>)}
                 </tbody>
               </table>
             </div>
