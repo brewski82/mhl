@@ -63,13 +63,15 @@ function ShoppingList(props) {
                 if (currentShoppingListId === 0) {
                     const shoppingList = await loadCurrentShoppingListOrCreateNew();
                     setCurrentShoppingListId(shoppingList.shoppingListId);
-                    const shoppingListItems = await getShoppingListItems(shoppingList.shoppingListId);
+                }
+                if (currentShoppingListId != 0) {
+                    const shoppingListItems = await getShoppingListItems(currentShoppingListId);
                     setNumberOfShoppingListItems(shoppingListItems ? shoppingListItems.length : 0);
                     currentShoppingListItemsDispatch({type: "init", shoppingListItems});
                 }
             }
         })();
-    }, [isLoggedIn]);
+    }, [isLoggedIn, currentShoppingListId]);
 
     useEffect(() => {
         setNumberOfShoppingListItems(currentShoppingListItems != null ? currentShoppingListItems.length : 0);
