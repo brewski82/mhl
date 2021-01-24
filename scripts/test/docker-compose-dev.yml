@@ -1,0 +1,21 @@
+version: '3'
+services:
+  web:
+    image: docker.io/library/nginx:latest
+    volumes:
+      - ${MHL_WEB_CONFIG}:/etc/nginx/conf.d/default.conf:z
+      - ../../web/react-app/build:/usr/share/nginx/html:z
+    ports:
+     - 3000:80
+  api:
+    image: mhl-api:1.0.30
+    ports:
+     - 8080:8888
+    volumes:
+      - ${MHL_API_CONFIG}:/usr/src/app/config/default.json:z
+    command: npm start
+    working_dir: /usr/src/app
+  db:
+    image: ${MHL_DB_TAG}
+    ports:
+      - ${MHL_DB_PORT}:5432
