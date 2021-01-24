@@ -244,7 +244,11 @@ function RecipeContainer() {
     /**
      * Switches from the edit recipe view to the recipe list view.
      */
-    const showRecipeList = () => {
+    const showRecipeList = async () => {
+        if (isLoggedIn) {
+            const recipes = await loadRecipes();
+            setRecipes(recipes);
+        }
         setState(prevState => ({...prevState, showList: true}));
     };
 
