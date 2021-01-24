@@ -1,6 +1,6 @@
 {
   "name": "mhl-web",
-  "version": "2.0.2",
+  "version": "3.0.0",
   "private": true,
   "author": "William Bruschi",
   "license": "AGPL-3.0-or-later",
@@ -32,7 +32,7 @@
     "@testing-library/jest-dom": "^5.11.9",
     "@testing-library/react": "^10.4.9",
     "enzyme": "^3.11.0",
-    "enzyme-adapter-react-16": "^1.15.5",
+    "enzyme-adapter-react-16": "^1.15.6",
     "fetch-mock": "^7.7.3",
     "jest-environment-jsdom-sixteen": "^1.0.3",
     "node-fetch": "^2.6.1",
