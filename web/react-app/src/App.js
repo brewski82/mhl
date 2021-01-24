@@ -63,10 +63,12 @@ function currentShoppingListItemsReducer(state, action) {
     }
 }
 
-function currentShoppingListRecipesReducer(state, action) {
+function currentShoppingListRecipesReducer(state = [], action) {
     switch (action.type) {
     case "init":
         return action.recipes;
+    case "add":
+        return [...state, action.recipe];
     default:
         throw new Error();
     }

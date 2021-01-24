@@ -30,7 +30,7 @@ import React, { useState, useEffect, useContext } from 'react';
 import './RecipeContainer.css';
 import { checkForEnterKey } from './Utils';
 import { createRecipe, updateRecipe, loadRecipes, createRecipeItem, deleteRecipeItem, updateRecipeItem, addRecipeToShoppingList, getRecipe, getRecipeItems } from './api/actions';
-import {IsLoggedInContext, CurrentShoppingListIdContext} from './App';
+import {IsLoggedInContext, CurrentShoppingListIdContext, CurrentShoppingListRecipesDispatchContext} from './App';
 
 /**
  * Handles displaying the recipe in the recipe list.
@@ -212,6 +212,7 @@ function RecipeContainer() {
     const [recipes, setRecipes] = useState([]);
     const isLoggedIn = useContext(IsLoggedInContext);
     const { currentShoppingListId } = useContext(CurrentShoppingListIdContext);
+    const currentShoppingListRecipesDispatch = useContext(CurrentShoppingListRecipesDispatchContext);
 
     useEffect(() => {
         (async () => {
@@ -234,8 +235,10 @@ function RecipeContainer() {
      * Adds all of the recipe's ingredients to the current shopping
      * list.
      */
-    const addItemsToList = (recipeId) => {
+    const addItemsToList = async (recipeId) => {
         addRecipeToShoppingList(recipeId, currentShoppingListId);
+        const recipe = await getRecipe(recipeId);
+        currentShoppingListRecipesDispatch({type: "add", recipe});
     };
 
     /**
