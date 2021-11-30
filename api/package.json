@@ -13,10 +13,10 @@
     "config": "^3.3.3",
     "nodemailer": "^6.4.17",
     "pg": "^7.18.2",
-    "restify": "^8.5.1"
+    "restify": "^8.6.0"
   },
   "devDependencies": {
-    "jest": "^25.5.4",
-    "supertest": "^4.0.2"
+    "jest": "^27.4.0",
+    "supertest": "^6.1.6"
   }
 }

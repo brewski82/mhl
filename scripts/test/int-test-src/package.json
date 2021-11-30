@@ -9,7 +9,7 @@
   "author": "William Bruschi",
   "license": "AGPL-3.0-or-later",
   "dependencies": {
-    "jest": "^24.9.0",
+    "jest": "^27.4.0",
     "pg": "^7.18.2",
     "superagent": "^5.2.2"
   }
