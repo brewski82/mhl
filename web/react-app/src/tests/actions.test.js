@@ -27,7 +27,6 @@
 */
 
 import * as actions from '../api/actions';;
-import fetchMock from 'fetch-mock';
 import { sleep } from '../Utils';
 
 describe('spinners', () => {
@@ -57,9 +56,7 @@ describe('spinners', () => {
 });
 
 async function runTest(actionFunction) {
-    const fn = jest.fn();
     const result = await actionFunction();
-    expect(fn).toHaveBeenCalled();
     return result;
 }
 

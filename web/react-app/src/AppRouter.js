@@ -27,7 +27,7 @@
 */
 
 import React from 'react';
-import { BrowserRouter as Router, Route } from "react-router-dom";
+import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
 import { Nav } from './Nav.js';
 import { ShoppingList } from './ShoppingList';
 import { ShoppingListContainer } from './ShoppingListContainer';
@@ -37,32 +37,34 @@ import { Login } from './Login';
 import { Footer } from './Footer';
 
 const About = () => <div>
-                      <h2>About</h2>
-                      <hr/>
-                      <div>
-                        <p>
-                          My Honey's List aims to be the world's easiest grocery shopping list application! It was originally created when we couldn't find an app that met all of our particular needs, such as recipe managment and the ability to easily add recipe items to your shopping list. MHL sorts lists by category, making shopping more efficent. Newly added items are initially assigned a category automatically. MHL remembers category assignment, so the more you use it, the better it gets at guessing categories!
-                        </p>
-                        <p>
-                          MHL is <a href="https://github.com/brewski82/mhl">open source software</a>.
-                        </p>
-                      </div>
-                    </div>;
+    <h2>About</h2>
+    <hr />
+    <div>
+        <p>
+            My Honey's List aims to be the world's easiest grocery shopping list application! It was originally created when we couldn't find an app that met all of our particular needs, such as recipe managment and the ability to easily add recipe items to your shopping list. MHL sorts lists by category, making shopping more efficent. Newly added items are initially assigned a category automatically. MHL remembers category assignment, so the more you use it, the better it gets at guessing categories!
+        </p>
+        <p>
+            MHL is <a href="https://github.com/brewski82/mhl">open source software</a>.
+        </p>
+    </div>
+</div>;
 
 export function AppRouter() {
     return (
         <Router>
-          <div className="container">
-            <Nav/>
-            <main role="main">
-              <Route path="/" exact render={props => (<ShoppingList {...props}/>)} />
-              <Route path="/shopping-lists/" exact component={ShoppingListContainer} />
-              <Route path="/recipes/" exact component={RecipeContainer} />
-              <Route path="/about/" exact component={About} />
-              <Route path="/account/" exact component={Account} />
-              <Route path="/login/" exact component={Login} />
-            </main>
-            <Footer/>
-          </div>
+            <div className="container">
+                <Nav />
+                <main role="main">
+                    <Routes>
+                        <Route path="/" exact render={props => (<ShoppingList {...props} />)} />
+                        <Route path="/shopping-lists/" exact component={ShoppingListContainer} />
+                        <Route path="/recipes/" exact component={RecipeContainer} />
+                        <Route path="/about/" exact component={About} />
+                        <Route path="/account/" exact component={Account} />
+                        <Route path="/login/" exact component={Login} />
+                    </Routes>
+                </main>
+                <Footer />
+            </div>
         </Router>);
 }
